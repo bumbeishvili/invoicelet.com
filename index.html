@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invoice Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --paper: #faf9f7;
+    --accent: #c4553a;
+    --muted: #8a8a99;
+    --line: #e4e2dd;
+    --field-bg: rgba(0,0,0,0.02);
+    --field-hover: rgba(0,0,0,0.04);
+    --radius: 4px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #eae8e3;
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    animation: fadeDown 0.4s ease;
+  }
+
+  .toolbar button {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 22px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .lang-select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--ink);
+    cursor: pointer;
+    outline: none;
+  }
+  .lang-select:focus { box-shadow: 0 0 0 2px rgba(196,85,58,0.25); }
+
+  .btn-print {
+    background: var(--ink);
+    color: #fff;
+  }
+  .btn-print:hover { background: #2d2d4a; transform: translateY(-1px); }
+
+  .btn-reset {
+    background: #fff;
+    color: var(--ink);
+    border: 1px solid var(--line) !important;
+  }
+  .btn-reset:hover { background: var(--field-hover); }
+
+  .invoice {
+    background: var(--paper);
+    width: 100%;
+    max-width: 800px;
+    padding: 60px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 20px 60px rgba(0,0,0,0.08);
+    border-radius: 2px;
+    animation: fadeUp 0.5s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Editable fields */
+  [contenteditable] {
+    outline: none;
+    border-radius: var(--radius);
+    padding: 2px 5px;
+    margin: -2px -5px;
+    transition: background 0.15s, box-shadow 0.15s;
+    min-width: 30px;
+    display: inline-block;
+  }
+  [contenteditable]:hover {
+    background: var(--field-hover);
+  }
+  [contenteditable]:focus {
+    background: var(--field-bg);
+    box-shadow: 0 0 0 2px rgba(196,85,58,0.25);
+  }
+  [contenteditable][data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .brand-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .invoice-title {
+    text-align: right;
+  }
+
+  .invoice-title h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .invoice-number {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* Info grid */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 48px;
+  }
+
+  .info-block label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .info-block .value {
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .dates-row {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 48px;
+  }
+
+  .date-field label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .date-field .value {
+    font-size: 14px;
+  }
+
+  /* Table */
+  .items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 32px;
+  }
+
+  .items-table thead th {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    text-align: left;
+    padding: 0 8px 12px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .items-table thead th:nth-child(2) { width: 80px; text-align: center; }
+  .items-table thead th:nth-child(3) { width: 120px; text-align: right; }
+  .items-table thead th:nth-child(4) { width: 120px; text-align: right; }
+
+  .items-table tbody td {
+    padding: 14px 8px;
+    font-size: 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+
+  .items-table tbody td:nth-child(2) { text-align: center; }
+  .items-table tbody td:nth-child(3) { text-align: right; }
+  .items-table tbody td:nth-child(4) { text-align: right; font-weight: 500; }
+
+  .items-table tbody td:last-child .remove-row {
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .items-table tbody tr:hover .remove-row {
+    opacity: 1;
+  }
+
+  .remove-row {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0 4px;
+    line-height: 1;
+  }
+  .remove-row:hover { color: var(--accent); }
+
+  .add-row-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--accent);
+    background: none;
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 40px;
+    display: inline-block;
+  }
+  .add-row-btn:hover {
+    border-color: var(--accent);
+    background: rgba(196,85,58,0.04);
+  }
+
+  /* Totals */
+  .totals-section {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .totals-block {
+    width: 280px;
+  }
+
+  .total-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 14px;
+  }
+
+  .total-line.subtotal { border-bottom: 1px solid var(--line); }
+
+  .total-line.grand-total {
+    border-top: 2px solid var(--ink);
+    margin-top: 4px;
+    padding-top: 12px;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .total-label { color: var(--muted); }
+  .grand-total .total-label { color: var(--ink); }
+
+  /* Notes */
+  .notes-section {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--line);
+  }
+
+  .notes-section label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .notes-section .value {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+
+  /* Print */
+  .empty-state {
+    text-align: center;
+    padding: 24px 8px;
+    color: var(--muted);
+    font-size: 13px;
+    font-style: italic;
+  }
+
+  @media print {
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+    @page { margin: 12mm 0; size: A4; }
+    body { background: #fff !important; padding: 0; margin: 0; }
+    .toolbar { display: none !important; }
+    .invoice {
+      box-shadow: none;
+      padding: 48px 56px;
+      max-width: none;
+      width: 100%;
+      border-radius: 0;
+      margin: 0;
+    }
+    .add-row-btn, .remove-row { display: none !important; }
+    .print-hide { display: none !important; }
+    .empty-state-row { display: none !important; }
+    [contenteditable]:hover, [contenteditable]:focus {
+      background: none !important; box-shadow: none !important;
+    }
+    .header { border-bottom: 2px solid #1a1a2e !important; }
+    .invoice-title h1 { color: #c4553a !important; }
+    .items-table thead th { border-bottom: 2px solid #1a1a2e !important; color: #8a8a99 !important; }
+    .items-table tbody td { border-bottom: 1px solid #e4e2dd !important; }
+    .total-line.subtotal { border-bottom: 1px solid #e4e2dd !important; }
+    .total-line.grand-total { border-top: 2px solid #1a1a2e !important; }
+    .total-label { color: #8a8a99 !important; }
+    .grand-total .total-label { color: #1a1a2e !important; }
+    .notes-section { border-top: 1px solid #e4e2dd !important; }
+    .notes-section .value { color: #8a8a99 !important; }
+    .info-block label, .date-field label, .notes-section label,
+    .invoice-number { color: #8a8a99 !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <select id="lang-select" class="lang-select">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="hi">हिन्दी</option>
+    <option value="es">Español</option>
+    <option value="ar">العربية</option>
+    <option value="fr">Français</option>
+    <option value="bn">বাংলা</option>
+    <option value="pt">Português</option>
+    <option value="uk">Українська</option>
+    <option value="ja">日本語</option>
+    <option value="de">Deutsch</option>
+    <option value="ko">한국어</option>
+    <option value="tr">Türkçe</option>
+    <option value="it">Italiano</option>
+    <option value="ka">ქართული</option>
+  </select>
+  <button class="btn-print" id="btn-print" onclick="preparePrint()">Print / Save PDF</button>
+  <button class="btn-reset" id="btn-reset" onclick="resetInvoice()">Reset</button>
+</div>
+
+<div class="invoice">
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div class="brand-name" contenteditable="true" data-placeholder="Your Company" data-ph="phCompany">Your Company</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:6px;">
+        <span contenteditable="true" data-placeholder="your@email.com">your@email.com</span>
+      </div>
+    </div>
+    <div class="invoice-title">
+      <h1 data-i18n="invoice">Invoice</h1>
+      <div class="invoice-number"># <span contenteditable="true" data-placeholder="001">001</span></div>
+    </div>
+  </div>
+
+  <!-- Info -->
+  <div class="info-grid">
+    <div class="info-block">
+      <label data-i18n="from">From</label>
+      <div class="value" contenteditable="true" data-placeholder="Your name / company&#10;Address line 1&#10;City, Country" data-ph="phFrom">Your Name<br>123 Street<br>City, Country</div>
+    </div>
+    <div class="info-block">
+      <label data-i18n="billTo">Bill To</label>
+      <div class="value" contenteditable="true" data-placeholder="Client name&#10;Address line 1&#10;City, Country" data-ph="phBillTo">Client Name<br>456 Avenue<br>City, Country</div>
+    </div>
+  </div>
+
+  <!-- Dates -->
+  <div class="dates-row">
+    <div class="date-field">
+      <label data-i18n="issueDate">Issue Date</label>
+      <div class="value" contenteditable="true" data-placeholder="YYYY-MM-DD">2026-03-14</div>
+    </div>
+    <div class="date-field">
+      <label data-i18n="dueDate">Due Date</label>
+      <div class="value" contenteditable="true" data-placeholder="Upon receipt" data-ph="phDueDate">Upon receipt</div>
+    </div>
+  </div>
+
+  <!-- Items -->
+  <table class="items-table">
+    <thead>
+      <tr>
+        <th data-i18n="description">Description</th>
+        <th data-i18n="qty">Qty</th>
+        <th data-i18n="unitPrice">Unit Price</th>
+        <th data-i18n="amount">Amount</th>
+        <th style="width:30px"></th>
+      </tr>
+    </thead>
+    <tbody id="items-body">
+      <tr>
+        <td><span contenteditable="true" data-placeholder="Item description" data-ph="phItemDesc" class="item-desc">Web Design</span></td>
+        <td><span contenteditable="true" class="item-qty" data-placeholder="0">1</span></td>
+        <td><span contenteditable="true" class="item-price" data-placeholder="0.00">500.00</span></td>
+        <td class="item-amount">500.00</td>
+        <td><button class="remove-row" onclick="removeRow(this)" title="Remove">&times;</button></td>
+      </tr>
+      <tr>
+        <td><span contenteditable="true" data-placeholder="Item description" data-ph="phItemDesc" class="item-desc">Development</span></td>
+        <td><span contenteditable="true" class="item-qty" data-placeholder="0">3</span></td>
+        <td><span contenteditable="true" class="item-price" data-placeholder="0.00">200.00</span></td>
+        <td class="item-amount">600.00</td>
+        <td><button class="remove-row" onclick="removeRow(this)" title="Remove">&times;</button></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <button class="add-row-btn" id="add-row-btn" onclick="addRow()">+ Add Item</button>
+
+  <!-- Totals -->
+  <div class="totals-section">
+    <div class="totals-block">
+      <div class="total-line subtotal">
+        <span class="total-label" data-i18n="subtotal">Subtotal</span>
+        <span id="subtotal">1,100.00</span>
+      </div>
+      <div class="total-line">
+        <span class="total-label" id="tax-label">Tax (<span contenteditable="true" id="tax-rate">10</span>%)</span>
+        <span id="tax-amount">110.00</span>
+      </div>
+      <div class="total-line grand-total">
+        <span class="total-label" data-i18n="total">Total</span>
+        <span id="grand-total">1,210.00</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notes -->
+  <div class="notes-section">
+    <label data-i18n="notes">Notes</label>
+    <div class="value" contenteditable="true" data-placeholder="Payment terms, bank details, thank you note…" data-ph="phNotes">Payment due within 30 days. Thank you for your business.</div>
+  </div>
+</div>
+
+<script>
+  const fmt = n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  // --- Enter key blurs (saves) contenteditable fields ---
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.closest('[contenteditable]')) {
+      // Allow Shift+Enter for multiline fields (addresses, notes)
+      if (e.shiftKey) return;
+      e.preventDefault();
+      e.target.blur();
+    }
+  });
+
+  // --- Recalculate totals ---
+  function recalc() {
+    const tbody = document.getElementById('items-body');
+    const rows = tbody.querySelectorAll('tr:not(.empty-state-row)');
+    let subtotal = 0;
+
+    rows.forEach(row => {
+      const qty = parseFloat(row.querySelector('.item-qty')?.textContent) || 0;
+      const price = parseFloat(row.querySelector('.item-price')?.textContent) || 0;
+      const amount = qty * price;
+      subtotal += amount;
+      const amountCell = row.querySelector('.item-amount');
+      if (amountCell) amountCell.textContent = fmt(amount);
+    });
+
+    const taxRate = parseFloat(document.getElementById('tax-rate').textContent) || 0;
+    const tax = subtotal * taxRate / 100;
+
+    document.getElementById('subtotal').textContent = fmt(subtotal);
+    document.getElementById('tax-amount').textContent = fmt(tax);
+    document.getElementById('grand-total').textContent = fmt(subtotal + tax);
+  }
+
+  // --- Empty state ---
+  function checkEmpty() {
+    const tbody = document.getElementById('items-body');
+    const dataRows = tbody.querySelectorAll('tr:not(.empty-state-row)');
+    const existing = tbody.querySelector('.empty-state-row');
+    if (dataRows.length === 0 && !existing) {
+      const tr = document.createElement('tr');
+      tr.className = 'empty-state-row';
+      tr.innerHTML = '<td colspan="5" class="empty-state">' + (i18n[document.getElementById('lang-select').value] || i18n.en).empty + '</td>';
+      tbody.appendChild(tr);
+    } else if (dataRows.length > 0 && existing) {
+      existing.remove();
+    }
+  }
+
+  // --- Add / remove rows ---
+  function addRow() {
+    const tbody = document.getElementById('items-body');
+    const empty = tbody.querySelector('.empty-state-row');
+    if (empty) empty.remove();
+
+    const lang = document.getElementById('lang-select').value;
+    const t = i18n[lang] || i18n.en;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span contenteditable="true" data-placeholder="${t.phItemDesc}" data-ph="phItemDesc" class="item-desc"></span></td>
+      <td><span contenteditable="true" class="item-qty" data-placeholder="0"></span></td>
+      <td><span contenteditable="true" class="item-price" data-placeholder="0.00"></span></td>
+      <td class="item-amount">0.00</td>
+      <td><button class="remove-row" onclick="removeRow(this)" title="Remove">&times;</button></td>
+    `;
+    tbody.appendChild(tr);
+    bindRow(tr);
+    tr.querySelector('.item-desc').focus();
+  }
+
+  function removeRow(btn) {
+    btn.closest('tr').remove();
+    recalc();
+    checkEmpty();
+  }
+
+  function bindRow(tr) {
+    tr.querySelectorAll('.item-qty, .item-price').forEach(el => {
+      el.addEventListener('input', recalc);
+    });
+  }
+
+  function resetInvoice() {
+    if (!confirm('Reset all fields?')) return;
+    location.reload();
+  }
+
+  function preparePrint() {
+    const hidden = [];
+
+    // Helper: check if element is effectively empty
+    function isEmpty(el) {
+      const text = el.textContent.trim();
+      return text === '' || text === el.getAttribute('data-placeholder');
+    }
+
+    // Hide empty editable fields and their parent containers
+    // Brand name + email row
+    const brandName = document.querySelector('.brand-name');
+    const emailSpan = brandName?.parentElement?.querySelector('span[contenteditable]');
+    if (isEmpty(brandName) && isEmpty(emailSpan)) {
+      brandName.parentElement.classList.add('print-hide');
+      hidden.push(brandName.parentElement);
+    } else {
+      if (isEmpty(brandName)) { brandName.classList.add('print-hide'); hidden.push(brandName); }
+      if (isEmpty(emailSpan)) { emailSpan.parentElement.classList.add('print-hide'); hidden.push(emailSpan.parentElement); }
+    }
+
+    // Info blocks (From / Bill To)
+    document.querySelectorAll('.info-block').forEach(block => {
+      const val = block.querySelector('.value[contenteditable]');
+      if (val && isEmpty(val)) { block.classList.add('print-hide'); hidden.push(block); }
+    });
+
+    // Date fields
+    document.querySelectorAll('.date-field').forEach(field => {
+      const val = field.querySelector('.value[contenteditable]');
+      if (val && isEmpty(val)) { field.classList.add('print-hide'); hidden.push(field); }
+    });
+
+    // Hide entire dates row if both hidden
+    const dateFields = document.querySelectorAll('.date-field');
+    if ([...dateFields].every(f => f.classList.contains('print-hide'))) {
+      const row = document.querySelector('.dates-row');
+      row.classList.add('print-hide'); hidden.push(row);
+    }
+
+    // Hide entire info-grid if both blocks hidden
+    const infoBlocks = document.querySelectorAll('.info-block');
+    if ([...infoBlocks].every(b => b.classList.contains('print-hide'))) {
+      const grid = document.querySelector('.info-grid');
+      grid.classList.add('print-hide'); hidden.push(grid);
+    }
+
+    // Item rows: hide rows where description, qty, and price are all empty/zero
+    document.querySelectorAll('#items-body tr:not(.empty-state-row)').forEach(row => {
+      const desc = row.querySelector('.item-desc');
+      const qty = row.querySelector('.item-qty');
+      const price = row.querySelector('.item-price');
+      const descEmpty = !desc || isEmpty(desc);
+      const qtyEmpty = !qty || qty.textContent.trim() === '' || qty.textContent.trim() === '0';
+      const priceEmpty = !price || price.textContent.trim() === '' || price.textContent.trim() === '0.00' || price.textContent.trim() === '0';
+      if (descEmpty && qtyEmpty && priceEmpty) {
+        row.classList.add('print-hide'); hidden.push(row);
+      }
+    });
+
+    // Notes section
+    const notesVal = document.querySelector('.notes-section .value[contenteditable]');
+    if (notesVal && isEmpty(notesVal)) {
+      const section = document.querySelector('.notes-section');
+      section.classList.add('print-hide'); hidden.push(section);
+    }
+
+    // Print, then restore
+    window.print();
+
+    hidden.forEach(el => el.classList.remove('print-hide'));
+  }
+
+  // --- i18n ---
+  const i18n = {
+    en: { invoice:'Invoice', from:'From', billTo:'Bill To', issueDate:'Issue Date', dueDate:'Due Date', description:'Description', qty:'Qty', unitPrice:'Unit Price', amount:'Amount', subtotal:'Subtotal', tax:'Tax', total:'Total', notes:'Notes', addItem:'+ Add Item', print:'Print / Save PDF', reset:'Reset', empty:'No items yet — click "+ Add Item" below', phCompany:'Your Company', phFrom:'Your name / company\nAddress line 1\nCity, Country', phBillTo:'Client name\nAddress line 1\nCity, Country', phDueDate:'Upon receipt', phItemDesc:'Item description', phNotes:'Payment terms, bank details, thank you note…' },
+    zh: { invoice:'发票', from:'发件人', billTo:'收件人', issueDate:'开票日期', dueDate:'到期日期', description:'描述', qty:'数量', unitPrice:'单价', amount:'金额', subtotal:'小计', tax:'税', total:'合计', notes:'备注', addItem:'+ 添加项目', print:'打印 / 保存PDF', reset:'重置', empty:'暂无项目 — 点击下方"+ 添加项目"', phCompany:'您的公司', phFrom:'您的姓名 / 公司\n地址\n城市, 国家', phBillTo:'客户名称\n地址\n城市, 国家', phDueDate:'收到即付', phItemDesc:'项目描述', phNotes:'付款条款、银行信息、感谢语…' },
+    hi: { invoice:'चालान', from:'प्रेषक', billTo:'प्राप्तकर्ता', issueDate:'जारी तिथि', dueDate:'देय तिथि', description:'विवरण', qty:'मात्रा', unitPrice:'इकाई मूल्य', amount:'राशि', subtotal:'उप-योग', tax:'कर', total:'कुल', notes:'टिप्पणियाँ', addItem:'+ आइटम जोड़ें', print:'प्रिंट / PDF सहेजें', reset:'रीसेट', empty:'अभी कोई आइटम नहीं — नीचे "+ आइटम जोड़ें" पर क्लिक करें', phCompany:'आपकी कंपनी', phFrom:'आपका नाम / कंपनी\nपता\nशहर, देश', phBillTo:'ग्राहक का नाम\nपता\nशहर, देश', phDueDate:'प्राप्ति पर', phItemDesc:'आइटम विवरण', phNotes:'भुगतान शर्तें, बैंक विवरण, धन्यवाद नोट…' },
+    es: { invoice:'Factura', from:'De', billTo:'Facturar a', issueDate:'Fecha de emisión', dueDate:'Fecha de vencimiento', description:'Descripción', qty:'Cant.', unitPrice:'Precio unitario', amount:'Importe', subtotal:'Subtotal', tax:'Impuesto', total:'Total', notes:'Notas', addItem:'+ Agregar ítem', print:'Imprimir / Guardar PDF', reset:'Restablecer', empty:'Sin ítems — haz clic en "+ Agregar ítem"', phCompany:'Tu empresa', phFrom:'Tu nombre / empresa\nDirección\nCiudad, País', phBillTo:'Nombre del cliente\nDirección\nCiudad, País', phDueDate:'Al recibir', phItemDesc:'Descripción del ítem', phNotes:'Condiciones de pago, datos bancarios, nota de agradecimiento…' },
+    ar: { invoice:'فاتورة', from:'من', billTo:'فاتورة إلى', issueDate:'تاريخ الإصدار', dueDate:'تاريخ الاستحقاق', description:'الوصف', qty:'الكمية', unitPrice:'سعر الوحدة', amount:'المبلغ', subtotal:'المجموع الفرعي', tax:'الضريبة', total:'الإجمالي', notes:'ملاحظات', addItem:'+ إضافة عنصر', print:'طباعة / حفظ PDF', reset:'إعادة تعيين', empty:'لا توجد عناصر — انقر "+ إضافة عنصر"', phCompany:'شركتك', phFrom:'اسمك / شركتك\nالعنوان\nالمدينة، البلد', phBillTo:'اسم العميل\nالعنوان\nالمدينة، البلد', phDueDate:'عند الاستلام', phItemDesc:'وصف العنصر', phNotes:'شروط الدفع، تفاصيل بنكية، ملاحظة شكر…' },
+    fr: { invoice:'Facture', from:'De', billTo:'Facturer à', issueDate:"Date d'émission", dueDate:"Date d'échéance", description:'Description', qty:'Qté', unitPrice:'Prix unitaire', amount:'Montant', subtotal:'Sous-total', tax:'Taxe', total:'Total', notes:'Notes', addItem:'+ Ajouter un article', print:'Imprimer / Sauvegarder PDF', reset:'Réinitialiser', empty:'Aucun article — cliquez sur "+ Ajouter un article"', phCompany:'Votre entreprise', phFrom:'Votre nom / entreprise\nAdresse\nVille, Pays', phBillTo:'Nom du client\nAdresse\nVille, Pays', phDueDate:'À réception', phItemDesc:"Description de l'article", phNotes:'Conditions de paiement, coordonnées bancaires, remerciement…' },
+    bn: { invoice:'চালান', from:'প্রেরক', billTo:'বিল প্রাপক', issueDate:'ইস্যু তারিখ', dueDate:'পরিশোধের তারিখ', description:'বিবরণ', qty:'পরিমাণ', unitPrice:'একক মূল্য', amount:'পরিমাণ', subtotal:'উপমোট', tax:'কর', total:'মোট', notes:'টীকা', addItem:'+ আইটেম যোগ করুন', print:'প্রিন্ট / PDF সংরক্ষণ', reset:'রিসেট', empty:'কোনো আইটেম নেই — নিচে "+ আইটেম যোগ করুন" ক্লিক করুন', phCompany:'আপনার কোম্পানি', phFrom:'আপনার নাম / কোম্পানি\nঠিকানা\nশহর, দেশ', phBillTo:'ক্লায়েন্টের নাম\nঠিকানা\nশহর, দেশ', phDueDate:'প্রাপ্তির পর', phItemDesc:'আইটেমের বিবরণ', phNotes:'পেমেন্টের শর্ত, ব্যাংক তথ্য, ধন্যবাদ বার্তা…' },
+    pt: { invoice:'Fatura', from:'De', billTo:'Cobrar de', issueDate:'Data de emissão', dueDate:'Data de vencimento', description:'Descrição', qty:'Qtd.', unitPrice:'Preço unitário', amount:'Valor', subtotal:'Subtotal', tax:'Imposto', total:'Total', notes:'Observações', addItem:'+ Adicionar item', print:'Imprimir / Salvar PDF', reset:'Redefinir', empty:'Nenhum item — clique em "+ Adicionar item"', phCompany:'Sua empresa', phFrom:'Seu nome / empresa\nEndereço\nCidade, País', phBillTo:'Nome do cliente\nEndereço\nCidade, País', phDueDate:'No recebimento', phItemDesc:'Descrição do item', phNotes:'Condições de pagamento, dados bancários, agradecimento…' },
+    uk: { invoice:'Рахунок', from:'Від', billTo:'Одержувач', issueDate:'Дата виставлення', dueDate:'Термін оплати', description:'Опис', qty:'К-сть', unitPrice:'Ціна за од.', amount:'Сума', subtotal:'Підсумок', tax:'Податок', total:'Разом', notes:'Примітки', addItem:'+ Додати позицію', print:'Друк / Зберегти PDF', reset:'Скинути', empty:'Позицій немає — натисніть "+ Додати позицію"', phCompany:'Ваша компанія', phFrom:'Ваше ім\'я / компанія\nАдреса\nМісто, Країна', phBillTo:'Ім\'я клієнта\nАдреса\nМісто, Країна', phDueDate:'Після отримання', phItemDesc:'Опис позиції', phNotes:'Умови оплати, банківські реквізити, подяка…' },
+    ja: { invoice:'請求書', from:'差出人', billTo:'請求先', issueDate:'発行日', dueDate:'支払期日', description:'内容', qty:'数量', unitPrice:'単価', amount:'金額', subtotal:'小計', tax:'税', total:'合計', notes:'備考', addItem:'+ 項目を追加', print:'印刷 / PDF保存', reset:'リセット', empty:'項目がありません —「+ 項目を追加」をクリック', phCompany:'会社名', phFrom:'氏名 / 会社名\n住所\n市区町村, 国', phBillTo:'顧客名\n住所\n市区町村, 国', phDueDate:'受領時', phItemDesc:'項目の説明', phNotes:'支払条件、振込先、お礼…' },
+    de: { invoice:'Rechnung', from:'Von', billTo:'Rechnungsempfänger', issueDate:'Ausstellungsdatum', dueDate:'Fälligkeitsdatum', description:'Beschreibung', qty:'Menge', unitPrice:'Einzelpreis', amount:'Betrag', subtotal:'Zwischensumme', tax:'Steuer', total:'Gesamt', notes:'Anmerkungen', addItem:'+ Position hinzufügen', print:'Drucken / PDF speichern', reset:'Zurücksetzen', empty:'Keine Positionen — klicken Sie auf "+ Position hinzufügen"', phCompany:'Ihr Unternehmen', phFrom:'Ihr Name / Unternehmen\nAdresse\nStadt, Land', phBillTo:'Kundenname\nAdresse\nStadt, Land', phDueDate:'Bei Erhalt', phItemDesc:'Positionsbeschreibung', phNotes:'Zahlungsbedingungen, Bankverbindung, Dankesnotiz…' },
+    ko: { invoice:'청구서', from:'발신인', billTo:'수신인', issueDate:'발행일', dueDate:'납부 기한', description:'설명', qty:'수량', unitPrice:'단가', amount:'금액', subtotal:'소계', tax:'세금', total:'합계', notes:'비고', addItem:'+ 항목 추가', print:'인쇄 / PDF 저장', reset:'초기화', empty:'항목 없음 — "+ 항목 추가"를 클릭하세요', phCompany:'회사명', phFrom:'이름 / 회사명\n주소\n도시, 국가', phBillTo:'고객명\n주소\n도시, 국가', phDueDate:'수령 즉시', phItemDesc:'항목 설명', phNotes:'결제 조건, 계좌 정보, 감사 인사…' },
+    tr: { invoice:'Fatura', from:'Gönderen', billTo:'Alıcı', issueDate:'Düzenleme tarihi', dueDate:'Vade tarihi', description:'Açıklama', qty:'Adet', unitPrice:'Birim fiyat', amount:'Tutar', subtotal:'Ara toplam', tax:'Vergi', total:'Toplam', notes:'Notlar', addItem:'+ Kalem ekle', print:'Yazdır / PDF kaydet', reset:'Sıfırla', empty:'Henüz kalem yok — aşağıdaki "+ Kalem ekle"ye tıklayın', phCompany:'Şirketiniz', phFrom:'Adınız / Şirket\nAdres\nŞehir, Ülke', phBillTo:'Müşteri adı\nAdres\nŞehir, Ülke', phDueDate:'Teslim aldığında', phItemDesc:'Kalem açıklaması', phNotes:'Ödeme koşulları, banka bilgileri, teşekkür notu…' },
+    it: { invoice:'Fattura', from:'Da', billTo:'Destinatario', issueDate:'Data di emissione', dueDate:'Data di scadenza', description:'Descrizione', qty:'Qtà', unitPrice:'Prezzo unitario', amount:'Importo', subtotal:'Subtotale', tax:'Imposta', total:'Totale', notes:'Note', addItem:'+ Aggiungi voce', print:'Stampa / Salva PDF', reset:'Ripristina', empty:'Nessuna voce — clicca su "+ Aggiungi voce"', phCompany:'La tua azienda', phFrom:'Nome / Azienda\nIndirizzo\nCittà, Paese', phBillTo:'Nome del cliente\nIndirizzo\nCittà, Paese', phDueDate:'Alla ricezione', phItemDesc:'Descrizione della voce', phNotes:'Condizioni di pagamento, coordinate bancarie, ringraziamento…' },
+    ka: { invoice:'ინვოისი', from:'გამომგზავნი', billTo:'მიმღები', issueDate:'გამოწერის თარიღი', dueDate:'გადახდის ვადა', description:'აღწერა', qty:'რაოდ.', unitPrice:'ერთეულის ფასი', amount:'თანხა', subtotal:'ჯამი', tax:'გადასახადი', total:'სულ ჯამი', notes:'შენიშვნები', addItem:'+ ჩანაწერის დამატება', print:'ბეჭდვა / PDF შენახვა', reset:'გასუფთავება', empty:'ჩანაწერები არ არის — დააჭირეთ "+ ჩანაწერის დამატება"', phCompany:'თქვენი კომპანია', phFrom:'თქვენი სახელი / კომპანია\nმისამართი\nქალაქი, ქვეყანა', phBillTo:'კლიენტის სახელი\nმისამართი\nქალაქი, ქვეყანა', phDueDate:'მიღებისთანავე', phItemDesc:'ჩანაწერის აღწერა', phNotes:'გადახდის პირობები, საბანკო რეკვიზიტები, მადლობის შენიშვნა…' },
+  };
+
+  function applyLang(lang) {
+    const t = i18n[lang] || i18n.en;
+    // Labels
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (t[key]) el.textContent = t[key];
+    });
+    // Placeholders
+    document.querySelectorAll('[data-ph]').forEach(el => {
+      const key = el.getAttribute('data-ph');
+      if (t[key]) el.setAttribute('data-placeholder', t[key]);
+    });
+    // Tax label (special: contains editable span)
+    const taxLabel = document.getElementById('tax-label');
+    const taxRateEl = document.getElementById('tax-rate');
+    const rateVal = taxRateEl.textContent;
+    taxLabel.innerHTML = '';
+    taxLabel.append(t.tax + ' (');
+    taxRateEl.textContent = rateVal;
+    taxLabel.appendChild(taxRateEl);
+    taxLabel.append('%)');
+    taxRateEl.addEventListener('input', recalc);
+    // Buttons
+    document.getElementById('add-row-btn').textContent = t.addItem;
+    document.getElementById('btn-print').textContent = t.print;
+    document.getElementById('btn-reset').textContent = t.reset;
+    // Empty state if visible
+    const emptyRow = document.querySelector('.empty-state-row td');
+    if (emptyRow) emptyRow.textContent = t.empty;
+    // RTL for Arabic
+    document.querySelector('.invoice').dir = lang === 'ar' ? 'rtl' : 'ltr';
+  }
+
+  // Bind existing rows + tax rate
+  document.querySelectorAll('#items-body tr').forEach(bindRow);
+  document.getElementById('tax-rate').addEventListener('input', recalc);
+  checkEmpty();
+
+  document.getElementById('lang-select').addEventListener('change', e => applyLang(e.target.value));
+</script>
+
+</body>
+</html>
