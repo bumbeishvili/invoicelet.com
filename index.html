@@ -762,6 +762,90 @@
   /* Ensure <main> wrapper doesn't constrain width */
   main { width: 100%; display: flex; flex-direction: column; align-items: center; }
 
+  /* ===== Invoice Style Themes ===== */
+
+  /* Modern — dark header band, rounded corners, accent borders */
+  .invoice.theme-modern { border-radius: 12px; overflow: hidden; }
+  .invoice.theme-modern .header {
+    background: #1a1a2e;
+    margin: -60px -60px 48px;
+    padding: 48px 60px 32px;
+    border-bottom: none;
+    border-radius: 0;
+  }
+  .invoice.theme-modern .brand-name { color: #fff; }
+  .invoice.theme-modern .header span[contenteditable] { color: rgba(255,255,255,0.55); }
+  .invoice.theme-modern .invoice-title h1 { color: #e8654a; }
+  .invoice.theme-modern .invoice-number { color: rgba(255,255,255,0.4); }
+  .invoice.theme-modern .currency-btn { color: rgba(255,255,255,0.5); border-color: rgba(255,255,255,0.2); }
+  .invoice.theme-modern .currency-btn:hover { border-color: #e8654a; color: #fff; }
+  .invoice.theme-modern .currency-btn #currency-symbol { color: #fff; }
+  .invoice.theme-modern .info-block label,
+  .invoice.theme-modern .date-field label,
+  .invoice.theme-modern .notes-section label { color: #e8654a; letter-spacing: 2px; }
+  .invoice.theme-modern .items-table thead th { border-bottom: 2px solid #e8654a; color: #e8654a; }
+  .invoice.theme-modern .items-table tbody td { border-bottom: 1px solid #f0efec; }
+  .invoice.theme-modern .total-line.subtotal { border-bottom-color: #f0efec; }
+  .invoice.theme-modern .total-line.grand-total { border-top: 2px solid #e8654a; color: #1a1a2e; }
+  .invoice.theme-modern .notes-section { border-top-color: #f0efec; }
+
+  /* Minimal — almost no borders, lots of whitespace, monochrome */
+  .invoice.theme-minimal { background: #fff; padding: 72px 64px; }
+  .invoice.theme-minimal .header {
+    border-bottom: none;
+    margin-bottom: 56px;
+    padding-bottom: 0;
+  }
+  .invoice.theme-minimal .brand-name { font-family: 'DM Sans', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .invoice.theme-minimal .invoice-title h1 { font-family: 'DM Sans', sans-serif; color: #b0afab; font-size: 28px; font-weight: 400; letter-spacing: 4px; text-transform: uppercase; }
+  .invoice.theme-minimal .invoice-number { color: #ccc; }
+  .invoice.theme-minimal .info-block label,
+  .invoice.theme-minimal .date-field label,
+  .invoice.theme-minimal .notes-section label { color: #ccc; font-size: 9px; letter-spacing: 2.5px; }
+  .invoice.theme-minimal .items-table thead th { border-bottom: 1px solid #eee; color: #ccc; font-size: 9px; letter-spacing: 2.5px; }
+  .invoice.theme-minimal .items-table tbody td { border-bottom: 1px solid #f7f7f7; color: #555; }
+  .invoice.theme-minimal .total-line.subtotal { border-bottom: 1px solid #f0f0f0; }
+  .invoice.theme-minimal .total-line.grand-total { border-top: 1px solid #333; font-size: 18px; }
+  .invoice.theme-minimal .total-label { color: #bbb; }
+  .invoice.theme-minimal .grand-total .total-label { color: #333; }
+  .invoice.theme-minimal .notes-section { border-top: none; }
+  .invoice.theme-minimal .notes-section .value { color: #bbb; }
+
+  /* Bold — thick red left accent, oversized type, strong colour */
+  .invoice.theme-bold { border-left: 8px solid #c4553a; border-radius: 0; background: #fff; }
+  .invoice.theme-bold .header { border-bottom: none; padding-bottom: 24px; margin-bottom: 36px; }
+  .invoice.theme-bold .brand-name { font-size: 34px; }
+  .invoice.theme-bold .invoice-title h1 { font-size: 52px; color: #c4553a; line-height: 0.9; }
+  .invoice.theme-bold .invoice-number { font-size: 14px; font-weight: 700; color: #c4553a; }
+  .invoice.theme-bold .info-block label,
+  .invoice.theme-bold .date-field label,
+  .invoice.theme-bold .notes-section label { color: #c4553a; font-weight: 700; }
+  .invoice.theme-bold .items-table { margin-top: 8px; }
+  .invoice.theme-bold .items-table thead th { border-bottom: 4px solid #c4553a; color: #c4553a; font-size: 11px; }
+  .invoice.theme-bold .items-table tbody td { border-bottom: 2px solid #f5e6e2; font-size: 15px; padding: 16px 8px; }
+  .invoice.theme-bold .total-line.subtotal { border-bottom: 2px solid #f5e6e2; }
+  .invoice.theme-bold .total-line.grand-total { border-top: 4px solid #c4553a; font-size: 26px; padding-top: 16px; }
+  .invoice.theme-bold .notes-section { border-top: 2px solid #f5e6e2; }
+
+  /* Corporate — navy & gold, formal feel */
+  .invoice.theme-corporate { background: #fff; border-top: 6px solid #1a1a2e; border-radius: 0; }
+  .invoice.theme-corporate .header { border-bottom: 1px solid #d4c9a8; padding-bottom: 28px; margin-bottom: 40px; }
+  .invoice.theme-corporate .brand-name { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 22px; letter-spacing: 1px; text-transform: uppercase; color: #1a1a2e; }
+  .invoice.theme-corporate .invoice-title h1 { font-family: 'DM Sans', sans-serif; font-size: 30px; font-weight: 700; color: #1a1a2e; letter-spacing: 2px; text-transform: uppercase; }
+  .invoice.theme-corporate .invoice-number { color: #a89968; font-weight: 700; }
+  .invoice.theme-corporate .info-block label,
+  .invoice.theme-corporate .date-field label,
+  .invoice.theme-corporate .notes-section label { color: #a89968; font-size: 10px; letter-spacing: 2px; }
+  .invoice.theme-corporate .items-table thead th { background: #1a1a2e; color: #d4c9a8; border-bottom: none; padding: 10px 8px; }
+  .invoice.theme-corporate .items-table tbody td { border-bottom: 1px solid #e8e4d8; }
+  .invoice.theme-corporate .items-table tbody tr:nth-child(even) td { background: #faf8f3; }
+  .invoice.theme-corporate .total-line.subtotal { border-bottom-color: #e8e4d8; }
+  .invoice.theme-corporate .total-line.grand-total { border-top: 3px double #1a1a2e; font-size: 20px; }
+  .invoice.theme-corporate .total-label { color: #a89968; }
+  .invoice.theme-corporate .grand-total .total-label { color: #1a1a2e; }
+  .invoice.theme-corporate .notes-section { border-top: 1px solid #e8e4d8; }
+  .invoice.theme-corporate .notes-section .value { color: #a89968; }
+
   /* Shared print base */
   @media print {
     @page { margin: 12mm 0; size: A4; }
@@ -816,6 +900,14 @@
       <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
     <div class="dropdown-menu" id="lang-menu"></div>
+  </div>
+
+  <div class="dropdown-wrap" id="style-wrap">
+    <button class="icon-btn secondary has-dropdown" onclick="toggleDropdown('style-menu')" title="Invoice style">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="dropdown-menu align-left" id="style-menu"></div>
   </div>
 
   <div style="flex:1"></div>
@@ -1209,7 +1301,8 @@
         taxRate: '0',
         notes: 'Payment due within 30 days.<br>Bank: Sample Bank Ltd.<br>IBAN: GB29 NWBK 6016 1331 9268 19<br>BIC/SWIFT: NWBKGB2L<br><br>Thank you for your business.',
         lang: 'en',
-        currency: 'USD'
+        currency: 'USD',
+        theme: 'classic'
       }
     });
     setVersions(versions);
@@ -1237,6 +1330,7 @@
     data.notes = document.querySelector('.notes-section .value').innerHTML;
     data.lang = currentLang;
     data.currency = currentCurrency.code;
+    data.theme = currentTheme;
     return data;
   }
 
@@ -1274,6 +1368,7 @@
 
     if (data.currency) selectCurrency(data.currency);
     if (data.lang) selectLang(data.lang);
+    if (data.theme) selectTheme(data.theme);
 
     recalc();
     checkEmpty();
@@ -1682,6 +1777,50 @@
     // RTL for Arabic
     document.querySelector('.invoice').dir = lang === 'ar' ? 'rtl' : 'ltr';
   }
+
+  // --- Invoice style themes ---
+  const themes = [
+    { id: 'classic', name: 'Classic' },
+    { id: 'modern', name: 'Modern' },
+    { id: 'minimal', name: 'Minimal' },
+    { id: 'bold', name: 'Bold' },
+    { id: 'corporate', name: 'Corporate' },
+  ];
+  let currentTheme = 'classic';
+
+  function buildStyleMenu() {
+    const menu = document.getElementById('style-menu');
+    menu.innerHTML = themes.map(t => {
+      const colors = {
+        classic: ['#faf9f7','#1a1a2e','#c4553a'],
+        modern: ['#1a1a2e','#e8654a','#faf9f7'],
+        minimal: ['#fff','#ddd','#555'],
+        bold: ['#fff','#c4553a','#c4553a'],
+        corporate: ['#1a1a2e','#d4c9a8','#fff'],
+      };
+      const c = colors[t.id] || colors.classic;
+      return `<button class="dropdown-item${t.id === currentTheme ? ' active' : ''}" onclick="selectTheme('${t.id}')">
+        <span style="display:inline-flex;width:20px;height:14px;border-radius:3px;overflow:hidden;border:1px solid #e4e2dd;flex-shrink:0;">
+          <span style="flex:1;background:${c[0]}"></span>
+          <span style="flex:1;background:${c[1]}"></span>
+          <span style="flex:1;background:${c[2]}"></span>
+        </span>
+        ${t.name}
+      </button>`;
+    }).join('');
+  }
+
+  function selectTheme(id) {
+    currentTheme = id;
+    const invoice = document.querySelector('.invoice');
+    themes.forEach(t => invoice.classList.remove('theme-' + t.id));
+    if (id !== 'classic') invoice.classList.add('theme-' + id);
+    buildStyleMenu();
+    closeAllDropdowns();
+    scheduleAutosave();
+  }
+
+  buildStyleMenu();
 
   // Bind existing rows + tax rate
   document.querySelectorAll('#items-body tr').forEach(bindRow);
