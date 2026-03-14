@@ -1186,6 +1186,36 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(versions));
   }
 
+  // Seed a "Generic Invoice" template on first visit
+  const SEED_KEY = 'invoice_seeded';
+  if (!localStorage.getItem(SEED_KEY)) {
+    const versions = getVersions();
+    versions.push({
+      id: 'generic',
+      name: 'Generic Invoice',
+      date: new Date().toISOString(),
+      data: {
+        company: 'Your Company',
+        email: 'your@email.com',
+        invoiceNum: '001',
+        from: 'Your Name<br>123 Street<br>City, Country',
+        billTo: 'Client Name<br>456 Avenue<br>City, Country',
+        issueDate: new Date().toISOString().slice(0, 10),
+        dueDate: 'Upon receipt',
+        items: [
+          { desc: 'Web Design', qty: '1', price: '500.00' },
+          { desc: 'Development', qty: '3', price: '200.00' }
+        ],
+        taxRate: '0',
+        notes: 'Payment due within 30 days.<br>Bank: Sample Bank Ltd.<br>IBAN: GB29 NWBK 6016 1331 9268 19<br>BIC/SWIFT: NWBKGB2L<br><br>Thank you for your business.',
+        lang: 'en',
+        currency: 'USD'
+      }
+    });
+    setVersions(versions);
+    localStorage.setItem(SEED_KEY, '1');
+  }
+
   function captureInvoice() {
     const data = {};
     data.company = document.querySelector('.brand-name').innerHTML;
