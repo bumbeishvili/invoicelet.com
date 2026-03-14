@@ -3,7 +3,139 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Invoice Generator</title>
+
+<!-- Primary Meta Tags -->
+<title>Invoicelet — Free Online Invoice Generator | Create & Download PDF Invoices</title>
+<meta name="description" content="Create professional invoices instantly with Invoicelet. Free online invoice generator with PDF export, multi-currency support (18+ currencies), 16 languages, tax calculation, and version history. No sign-up required — works entirely in your browser.">
+<meta name="keywords" content="invoice generator, free invoice, create invoice online, PDF invoice, invoice maker, billing, invoicelet, invoice template, online invoicing tool, freelancer invoice, small business invoice">
+<meta name="author" content="Invoicelet">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+<link rel="canonical" href="https://invoicelet.com/">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://invoicelet.com/">
+<meta property="og:title" content="Invoicelet — Free Online Invoice Generator">
+<meta property="og:description" content="Create professional invoices in seconds. Free PDF export, 18+ currencies, 16 languages, tax calculation, and version history. No sign-up required.">
+<meta property="og:site_name" content="Invoicelet">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://invoicelet.com/">
+<meta name="twitter:title" content="Invoicelet — Free Online Invoice Generator">
+<meta name="twitter:description" content="Create professional invoices in seconds. Free PDF export, 18+ currencies, 16 languages, tax calculation. No sign-up required.">
+
+<!-- Additional SEO signals -->
+<meta name="application-name" content="Invoicelet">
+<meta name="theme-color" content="#1a1a2e">
+<link rel="alternate" hreflang="en" href="https://invoicelet.com/">
+<link rel="alternate" hreflang="x-default" href="https://invoicelet.com/">
+
+<!-- Structured Data: WebApplication -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Invoicelet",
+  "url": "https://invoicelet.com",
+  "description": "Free online invoice generator with PDF export, multi-currency support, 16 languages, tax calculation, and version history. No sign-up required.",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires a modern web browser",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "featureList": [
+    "PDF invoice export",
+    "18+ currency support",
+    "16 language translations",
+    "Customizable tax rates",
+    "Version history and management",
+    "Works offline in browser",
+    "No sign-up or account required",
+    "Editable company and client details",
+    "Automatic total calculation"
+  ],
+  "screenshot": "https://invoicelet.com/screenshot.png",
+  "softwareHelp": {
+    "@type": "WebPage",
+    "url": "https://invoicelet.com/#how-it-works"
+  }
+}
+</script>
+
+<!-- Structured Data: FAQPage -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is Invoicelet really free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, Invoicelet is 100% free with no hidden fees, no sign-up, and no account required. All invoice creation and PDF export features are available at no cost."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I need to create an account to use Invoicelet?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Invoicelet works entirely in your browser. There is no registration, login, or account needed. Just open the page and start creating your invoice."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What currencies does Invoicelet support?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Invoicelet supports 18+ currencies including USD, EUR, GBP, JPY, CHF, CAD, AUD, CNY, INR, KRW, TRY, GEL, UAH, BRL, PLN, SEK, ILS, and SAR."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I download my invoice as a PDF?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Click the PDF button in the toolbar to instantly generate and download a professional PDF of your invoice."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What languages does Invoicelet support?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Invoicelet supports 16 languages: English, Chinese, Hindi, Spanish, Arabic, French, Bengali, Portuguese, Ukrainian, Japanese, German, Korean, Turkish, Italian, and Georgian."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is my data safe with Invoicelet?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Absolutely. Invoicelet runs entirely in your browser. No data is ever sent to a server. Your invoices and saved versions are stored locally on your device using browser storage."
+      }
+    }
+  ]
+}
+</script>
+
+<!-- Structured Data: Organization -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Invoicelet",
+  "url": "https://invoicelet.com",
+  "description": "Free online invoice generator for freelancers and small businesses."
+}
+</script>
+
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
@@ -116,7 +248,21 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 20px 60px rgba(0,0,0,0.08);
     border-radius: 2px;
     animation: fadeUp 0.5s ease forwards;
+    position: relative;
   }
+
+  .invoice-badge {
+    position: absolute;
+    bottom: 16px;
+    right: 20px;
+    font-size: 10px;
+    color: #b0afab;
+    text-decoration: none;
+    letter-spacing: 0.3px;
+    transition: color 0.15s;
+    display: none;
+  }
+  .invoice-badge:hover { color: #c4553a; }
 
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(12px); }
@@ -540,6 +686,72 @@
   }
   .version-btn.delete:hover { color: #c4553a; border-color: #c4553a; }
 
+  /* SEO Content Footer */
+  .seo-content {
+    width: 100%;
+    max-width: 800px;
+    margin-top: 48px;
+    padding: 48px 0 32px;
+    font-family: 'DM Sans', sans-serif;
+    color: #5a5a6e;
+    line-height: 1.8;
+  }
+  .seo-inner { padding: 0 4px; }
+  .seo-content h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 12px;
+  }
+  .seo-content h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 32px 0 12px;
+  }
+  .seo-content p { margin-bottom: 12px; font-size: 14px; }
+  .seo-content ul, .seo-content ol {
+    padding-left: 24px;
+    margin-bottom: 12px;
+    font-size: 14px;
+  }
+  .seo-content li { margin-bottom: 6px; }
+  .seo-content details {
+    border-bottom: 1px solid #e4e2dd;
+    padding: 12px 0;
+  }
+  .seo-content summary {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a2e;
+    cursor: pointer;
+    list-style: none;
+  }
+  .seo-content summary::-webkit-details-marker { display: none; }
+  .seo-content summary::before {
+    content: '+';
+    display: inline-block;
+    width: 20px;
+    font-weight: 700;
+    color: #c4553a;
+  }
+  .seo-content details[open] summary::before { content: '\2212'; }
+  .seo-content details p { margin: 8px 0 4px 20px; font-size: 13px; color: #6b6b78; }
+  .seo-footer-note {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid #e4e2dd;
+    font-size: 12px;
+    color: #8a8a99;
+    text-align: center;
+  }
+  .seo-footer-note a { color: #c4553a; text-decoration: none; }
+  .seo-footer-note a:hover { text-decoration: underline; }
+
+  /* Ensure <main> wrapper doesn't constrain width */
+  main { width: 100%; display: flex; flex-direction: column; align-items: center; }
+
   /* Shared print base */
   @media print {
     @page { margin: 12mm 0; size: A4; }
@@ -557,6 +769,8 @@
     .print-hide { display: none !important; }
     .empty-state-row { display: none !important; }
     .versions-drawer { display: none !important; }
+    .seo-content { display: none !important; }
+    .skip-link { display: none !important; }
     [contenteditable]:hover, [contenteditable]:focus {
       background: none !important; box-shadow: none !important;
     }
@@ -573,6 +787,7 @@
     body.print-styled .grand-total .total-label { color: #1a1a2e !important; }
     body.print-styled .notes-section { border-top: 1px solid #e4e2dd !important; }
     body.print-styled .notes-section .value { color: #8a8a99 !important; }
+    body.print-styled .invoice-badge { color: #b0afab !important; }
     body.print-styled .info-block label, body.print-styled .date-field label,
     body.print-styled .notes-section label, body.print-styled .invoice-number { color: #8a8a99 !important; }
 
@@ -581,6 +796,9 @@
 </head>
 <body>
 
+<a href="#main-content" class="skip-link" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;z-index:999;">Skip to invoice generator</a>
+
+<main id="main-content" role="main">
 <div class="toolbar">
   <div class="dropdown-wrap" id="lang-wrap">
     <button class="icon-btn secondary has-dropdown" onclick="toggleDropdown('lang-menu')">
@@ -729,7 +947,76 @@
     <label data-i18n="notes">Notes</label>
     <div class="value" contenteditable="true" data-placeholder="Payment terms, bank details, thank you note…" data-ph="phNotes">Payment due within 30 days.<br>Bank: Sample Bank Ltd.<br>IBAN: GB29 NWBK 6016 1331 9268 19<br>BIC/SWIFT: NWBKGB2L<br><br>Thank you for your business.</div>
   </div>
+
+  <a href="https://invoicelet.com" class="invoice-badge" target="_blank" rel="noopener">Powered by invoicelet.com</a>
 </div>
+</main>
+
+<!-- SEO Content Section -->
+<footer class="seo-content" role="contentinfo">
+  <div class="seo-inner">
+    <h2>Free Online Invoice Generator</h2>
+    <p><strong>Invoicelet</strong> is a free, browser-based invoice generator designed for freelancers, small businesses, and anyone who needs to create professional invoices quickly. No sign-up, no account, no fees — just open the page and start invoicing.</p>
+
+    <section class="seo-features" id="features">
+      <h3>Features</h3>
+      <ul>
+        <li><strong>Instant PDF Export</strong> — Generate and download polished PDF invoices with one click.</li>
+        <li><strong>18+ Currencies</strong> — USD, EUR, GBP, JPY, INR, GEL, and many more built in.</li>
+        <li><strong>16 Languages</strong> — Switch the entire invoice between English, Spanish, French, German, Japanese, Chinese, Arabic, and more.</li>
+        <li><strong>Tax Calculation</strong> — Set your tax rate and totals update automatically.</li>
+        <li><strong>Version History</strong> — Save, name, search, and restore invoice versions locally.</li>
+        <li><strong>100% Private</strong> — Everything runs in your browser. No data is sent to any server.</li>
+        <li><strong>No Sign-Up Required</strong> — Start creating invoices immediately, no account needed.</li>
+        <li><strong>Fully Editable</strong> — Click any field to customize company name, client details, line items, notes, and more.</li>
+      </ul>
+    </section>
+
+    <section class="seo-how" id="how-it-works">
+      <h3>How It Works</h3>
+      <ol>
+        <li><strong>Fill in your details</strong> — Enter your company name, address, and client information.</li>
+        <li><strong>Add line items</strong> — Describe your services or products, set quantities and prices.</li>
+        <li><strong>Choose currency &amp; language</strong> — Pick from 18+ currencies and 16 languages.</li>
+        <li><strong>Download as PDF</strong> — Click the PDF button to save a professional invoice instantly.</li>
+      </ol>
+    </section>
+
+    <section class="seo-faq" id="faq">
+      <h3>Frequently Asked Questions</h3>
+      <details>
+        <summary>Is Invoicelet really free?</summary>
+        <p>Yes, Invoicelet is 100% free with no hidden fees, no sign-up, and no account required. All invoice creation and PDF export features are available at no cost.</p>
+      </details>
+      <details>
+        <summary>Do I need to create an account?</summary>
+        <p>No. Invoicelet works entirely in your browser. There is no registration, login, or account needed. Just open the page and start creating your invoice.</p>
+      </details>
+      <details>
+        <summary>What currencies are supported?</summary>
+        <p>Invoicelet supports 18+ currencies including USD, EUR, GBP, JPY, CHF, CAD, AUD, CNY, INR, KRW, TRY, GEL, UAH, BRL, PLN, SEK, ILS, and SAR.</p>
+      </details>
+      <details>
+        <summary>Can I download my invoice as a PDF?</summary>
+        <p>Yes. Click the PDF button in the toolbar to instantly generate and download a professional PDF of your invoice.</p>
+      </details>
+      <details>
+        <summary>What languages does Invoicelet support?</summary>
+        <p>Invoicelet supports 16 languages: English, Chinese, Hindi, Spanish, Arabic, French, Bengali, Portuguese, Ukrainian, Japanese, German, Korean, Turkish, Italian, and Georgian.</p>
+      </details>
+      <details>
+        <summary>Is my data safe?</summary>
+        <p>Absolutely. Invoicelet runs entirely in your browser. No data is ever sent to a server. Your invoices and saved versions are stored locally on your device.</p>
+      </details>
+      <details>
+        <summary>Does it work offline?</summary>
+        <p>The core editing features work without an internet connection once the page is loaded. PDF generation requires the page resources to be cached.</p>
+      </details>
+    </section>
+
+    <p class="seo-footer-note">&copy; <span id="seo-year">2026</span> <a href="https://invoicelet.com">Invoicelet</a> — Free invoice generator for everyone.</p>
+  </div>
+</footer>
 
 <script>
   // --- Currency ---
@@ -772,6 +1059,7 @@
     buildCurrencyMenu();
     closeAllDropdowns();
     recalc();
+    scheduleAutosave();
   }
 
   const fmt = n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -808,6 +1096,7 @@
     document.getElementById('subtotal').textContent = fmtCur(subtotal);
     document.getElementById('tax-amount').textContent = fmtCur(tax);
     document.getElementById('grand-total').textContent = fmtCur(subtotal + tax);
+    scheduleAutosave();
   }
 
   // --- Empty state ---
@@ -850,6 +1139,7 @@
     btn.closest('tr').remove();
     recalc();
     checkEmpty();
+    scheduleAutosave();
   }
 
   function bindRow(tr) {
@@ -860,6 +1150,15 @@
 
   // --- Version management ---
   const STORAGE_KEY = 'invoice_versions';
+  const AUTOSAVE_KEY = 'invoice_autosave';
+
+  let _autosaveTimer = null;
+  function scheduleAutosave() {
+    clearTimeout(_autosaveTimer);
+    _autosaveTimer = setTimeout(function() {
+      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(captureInvoice()));
+    }, 400);
+  }
 
   function getVersions() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
@@ -1130,6 +1429,7 @@
     applyLang(code);
     buildLangMenu();
     closeAllDropdowns();
+    scheduleAutosave();
   }
 
   function updateVersionCount() {
@@ -1229,6 +1529,9 @@
       const currencyPick = document.querySelector('.currency-pick');
       currencyPick.style.display = 'none';
 
+      const badge = document.querySelector('.invoice-badge');
+      badge.style.display = 'block';
+
       const editables = invoice.querySelectorAll('[contenteditable]');
       editables.forEach(el => el.removeAttribute('contenteditable'));
 
@@ -1255,6 +1558,7 @@
         hidden.forEach(el => { el.classList.remove('print-hide'); el.style.display = ''; });
         editables.forEach(el => el.setAttribute('contenteditable', 'true'));
         currencyPick.style.display = '';
+        badge.style.display = 'none';
         btn.textContent = origText;
         btn.disabled = false;
       }
@@ -1335,7 +1639,23 @@
   buildLangMenu();
   buildCurrencyMenu();
   updateVersionCount();
+
+  // Auto-restore from last session
+  try {
+    const saved = JSON.parse(localStorage.getItem(AUTOSAVE_KEY));
+    if (saved) restoreInvoice(saved);
+  } catch(e) {}
+
   recalc();
+
+  // Listen for edits on all contenteditable fields
+  document.querySelector('.invoice').addEventListener('input', function(e) {
+    if (e.target.closest('[contenteditable]')) scheduleAutosave();
+  });
+
+  // Auto-update footer year
+  const yearEl = document.getElementById('seo-year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
 </script>
 
 </body>
