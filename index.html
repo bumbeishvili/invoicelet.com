@@ -957,7 +957,6 @@
     <div class="value" contenteditable="true" data-placeholder="Payment terms, bank details, thank you note…" data-ph="phNotes">Payment due within 30 days.<br>Bank: Sample Bank Ltd.<br>IBAN: GB29 NWBK 6016 1331 9268 19<br>BIC/SWIFT: NWBKGB2L<br><br>Thank you for your business.</div>
   </div>
 
-  <a href="https://invoicelet.com" class="invoice-badge" target="_blank" rel="noopener">Powered by invoicelet.com</a>
 </div>
 </main>
 
@@ -1546,8 +1545,12 @@
       const currencyPick = document.querySelector('.currency-pick');
       currencyPick.style.display = 'none';
 
-      const badge = document.querySelector('.invoice-badge');
+      const badge = document.createElement('a');
+      badge.href = 'https://invoicelet.com';
+      badge.className = 'invoice-badge';
+      badge.textContent = 'Powered by invoicelet.com';
       badge.style.display = 'block';
+      invoice.appendChild(badge);
 
       const editables = invoice.querySelectorAll('[contenteditable]');
       editables.forEach(el => el.removeAttribute('contenteditable'));
@@ -1575,7 +1578,7 @@
         hidden.forEach(el => { el.classList.remove('print-hide'); el.style.display = ''; });
         editables.forEach(el => el.setAttribute('contenteditable', 'true'));
         currencyPick.style.display = '';
-        badge.style.display = 'none';
+        badge.remove();
         btn.textContent = origText;
         btn.disabled = false;
       }
