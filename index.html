@@ -1084,6 +1084,14 @@
     }
   });
 
+  // --- Strip formatting on paste inside invoice ---
+  document.querySelector('.invoice').addEventListener('paste', function(e) {
+    if (!e.target.closest('[contenteditable]')) return;
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    document.execCommand('insertText', false, text);
+  });
+
   // --- Recalculate totals ---
   function recalc() {
     const tbody = document.getElementById('items-body');
