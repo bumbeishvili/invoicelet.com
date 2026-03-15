@@ -762,6 +762,32 @@
   /* Ensure <main> wrapper doesn't constrain width */
   main { width: 100%; display: flex; flex-direction: column; align-items: center; }
 
+  /* ===== Responsive / Mobile ===== */
+  @media (max-width: 600px) {
+    .invoice { padding: 28px 18px; }
+    .header { flex-direction: column; gap: 16px; }
+    .invoice-title { text-align: left; }
+    .invoice-title h1 { font-size: 28px; }
+    .brand-name { font-size: 22px; }
+    .info-grid { grid-template-columns: 1fr; gap: 20px; margin-bottom: 28px; }
+    .dates-row { flex-direction: column; gap: 16px; margin-bottom: 28px; }
+    .items-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .items-table thead th:nth-child(2),
+    .items-table thead th:nth-child(3) { width: auto; }
+    .items-table thead th, .items-table tbody td { font-size: 12px; padding: 10px 6px; white-space: nowrap; }
+    .items-table thead th:first-child, .items-table tbody td:first-child { white-space: normal; min-width: 120px; }
+    .totals-block { width: 100%; }
+    .add-row-btn { width: 100%; text-align: center; }
+    .items-table tbody td:last-child .remove-row { opacity: 1; }
+    .toolbar { gap: 4px; padding: 10px 12px; }
+    .btn-label { display: none; }
+    .versions-drawer { width: 100% !important; right: 0 !important; }
+
+    /* Theme-specific mobile overrides */
+    .invoice.theme-modern .header { margin: -28px -18px 28px; padding: 28px 18px 20px; }
+    .invoice.theme-minimal { padding: 36px 18px; }
+  }
+
   /* ===== Invoice Style Themes ===== */
 
   /* Modern — dark header band, rounded corners, accent borders */
@@ -1698,13 +1724,20 @@
       const origRadius = invoice.style.borderRadius;
       const origOverflow = invoice.style.overflow;
       const origPaddingRight = invoice.style.paddingRight;
+      const origInlineWidth = invoice.style.width;
+      const origInlineMaxWidth = invoice.style.maxWidth;
+      const origInlinePadding = invoice.style.padding;
       invoice.style.background = '#ffffff';
       invoice.style.boxShadow = 'none';
       invoice.style.animation = 'none';
       invoice.style.opacity = '1';
       invoice.style.borderRadius = '0';
       invoice.style.overflow = 'visible';
-      invoice.style.paddingRight = (parseFloat(getComputedStyle(invoice).paddingRight) - 14) + 'px';
+      // Force desktop layout for PDF regardless of screen size
+      invoice.style.width = '800px';
+      invoice.style.maxWidth = '800px';
+      invoice.style.padding = '60px';
+      invoice.style.paddingRight = (60 - 14) + 'px';
 
       // Fix header negative margins to match current padding for edge-to-edge themes
       const header = invoice.querySelector('.header');
@@ -1729,7 +1762,10 @@
         invoice.style.boxShadow = origShadow;
         invoice.style.borderRadius = origRadius;
         invoice.style.overflow = origOverflow;
+        invoice.style.padding = origInlinePadding;
         invoice.style.paddingRight = origPaddingRight;
+        invoice.style.width = origInlineWidth;
+        invoice.style.maxWidth = origInlineMaxWidth;
         invoice.style.animation = '';
         invoice.style.opacity = '';
         header.style.cssText = origHeaderMargin;
@@ -1745,11 +1781,13 @@
       }
 
       function generatePDF(invoice, restore) {
+        var canvasOpts = { scale: 3, useCORS: true, logging: false, backgroundColor: '#ffffff' };
+        if (window.innerWidth < 800) canvasOpts.windowWidth = 800;
         html2pdf().set({
           margin: [0, -5, 0, 0],
           filename: 'invoice.pdf',
           image: { type: 'png' },
-          html2canvas: { scale: 3, useCORS: true, logging: false, backgroundColor: '#ffffff' },
+          html2canvas: canvasOpts,
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         }).from(invoice).save().then(function() {
           restore();
