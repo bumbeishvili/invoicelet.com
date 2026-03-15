@@ -146,8 +146,10 @@
 }
 </script>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -1693,10 +1695,29 @@
 
       const origBg = invoice.style.background;
       const origShadow = invoice.style.boxShadow;
+      const origRadius = invoice.style.borderRadius;
+      const origOverflow = invoice.style.overflow;
+      const origPaddingRight = invoice.style.paddingRight;
       invoice.style.background = '#ffffff';
       invoice.style.boxShadow = 'none';
       invoice.style.animation = 'none';
       invoice.style.opacity = '1';
+      invoice.style.borderRadius = '0';
+      invoice.style.overflow = 'visible';
+      invoice.style.paddingRight = (parseFloat(getComputedStyle(invoice).paddingRight) - 14) + 'px';
+
+      // Fix header negative margins to match current padding for edge-to-edge themes
+      const header = invoice.querySelector('.header');
+      const invoiceStyles = getComputedStyle(invoice);
+      const headerStyles = getComputedStyle(header);
+      const origHeaderMargin = header.style.cssText;
+      const iPadTop = parseFloat(invoiceStyles.paddingTop);
+      const iPadLeft = parseFloat(invoiceStyles.paddingLeft);
+      const hMarginTop = parseFloat(headerStyles.marginTop);
+      if (hMarginTop < 0) {
+        header.style.margin = `-${iPadTop}px -${iPadLeft}px ${parseFloat(headerStyles.marginBottom)}px`;
+        header.style.padding = `${iPadTop}px ${iPadLeft}px ${parseFloat(headerStyles.paddingBottom)}px`;
+      }
 
       const btn = document.getElementById('btn-save');
       const origText = btn.textContent;
@@ -1706,8 +1727,12 @@
       function restore() {
         invoice.style.background = origBg;
         invoice.style.boxShadow = origShadow;
+        invoice.style.borderRadius = origRadius;
+        invoice.style.overflow = origOverflow;
+        invoice.style.paddingRight = origPaddingRight;
         invoice.style.animation = '';
         invoice.style.opacity = '';
+        header.style.cssText = origHeaderMargin;
         addBtn.style.display = '';
         removeButtons.forEach(b => b.style.display = '');
         if (emptyRow) emptyRow.style.display = '';
@@ -1719,18 +1744,30 @@
         btn.disabled = false;
       }
 
-      html2pdf().set({
-        margin: [8, 4, 8, 4],
-        filename: 'invoice.pdf',
-        image: { type: 'png' },
-        html2canvas: { scale: 3, useCORS: true, logging: false, backgroundColor: '#ffffff' },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      }).from(invoice).save().then(function() {
-        restore();
-      }).catch(function(err) {
-        console.error('PDF error:', err);
-        restore();
-      });
+      function generatePDF(invoice, restore) {
+        html2pdf().set({
+          margin: [0, -5, 0, 0],
+          filename: 'invoice.pdf',
+          image: { type: 'png' },
+          html2canvas: { scale: 3, useCORS: true, logging: false, backgroundColor: '#ffffff' },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        }).from(invoice).save().then(function() {
+          restore();
+        }).catch(function(err) {
+          console.error('PDF error:', err);
+          restore();
+        });
+      }
+
+      if (typeof html2pdf !== 'undefined') {
+        generatePDF(invoice, restore);
+      } else {
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+        s.onload = function() { generatePDF(invoice, restore); };
+        s.onerror = function() { console.error('Failed to load html2pdf'); restore(); };
+        document.head.appendChild(s);
+      }
 
       return;
     }
