@@ -233,6 +233,7 @@
   .icon-btn.primary { background: #1a1a2e; color: #fff; }
   .icon-btn.primary:hover { background: #2d2d4a; transform: translateY(-1px); }
   .icon-btn.primary.has-label { width: auto; padding: 0 14px 0 12px; gap: 6px; }
+  .icon-btn.secondary.has-label { width: auto; padding: 0 14px 0 12px; gap: 6px; }
   .btn-label { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; }
   .icon-btn.secondary { background: #fff; color: #1a1a2e; border: 1px solid #e4e2dd; }
   .icon-btn.secondary:hover { background: rgba(0,0,0,0.04); }
@@ -1070,6 +1071,11 @@
   <button class="icon-btn primary has-label" id="btn-save" onclick="preparePrint('styled')" title="Download PDF">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l3 3 3-3"/><line x1="12" y1="12" x2="12" y2="18"/></svg>
     <span class="btn-label">PDF</span>
+  </button>
+
+  <button class="icon-btn secondary has-label" id="btn-share" onclick="shareInvoice()" title="Share invoice link">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+    <span class="btn-label">Share</span>
   </button>
 
   <div class="dropdown-wrap" id="save-wrap">
@@ -1941,6 +1947,88 @@
     checkEmpty();
   }
 
+  // --- Sharing ---
+  function shareInvoice() {
+    const data = captureInvoice();
+    const compact = {
+      co: data.company,
+      em: data.email,
+      num: data.invoiceNum,
+      fr: data.from,
+      bt: data.billTo,
+      id: data.issueDate,
+      dd: data.dueDate,
+      it: data.items,
+      tx: data.taxRate,
+      no: data.notes,
+      sl: data.stripeLink || undefined,
+      pl: data.paypalLink || undefined,
+      cl: data.customLink || undefined,
+      cb: data.customLabel || undefined,
+      ln: data.lang !== 'en' ? data.lang : undefined,
+      cu: data.currency !== 'USD' ? data.currency : undefined,
+      th: data.theme !== 'classic' ? data.theme : undefined
+    };
+    Object.keys(compact).forEach(k => compact[k] === undefined && delete compact[k]);
+    const json = JSON.stringify(compact);
+    const encoded = btoa(unescape(encodeURIComponent(json)));
+    const url = window.location.origin + window.location.pathname + '?d=' + encodeURIComponent(encoded);
+    const btn = document.getElementById('btn-share');
+    const origLabel = btn.querySelector('.btn-label').textContent;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function() {
+        btn.querySelector('.btn-label').textContent = 'Copied!';
+        setTimeout(function() { btn.querySelector('.btn-label').textContent = origLabel; }, 2000);
+      });
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      btn.querySelector('.btn-label').textContent = 'Copied!';
+      setTimeout(function() { btn.querySelector('.btn-label').textContent = origLabel; }, 2000);
+    }
+  }
+
+  function restoreFromShareUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const encoded = params.get('d');
+    if (!encoded) return false;
+    try {
+      const json = decodeURIComponent(escape(atob(decodeURIComponent(encoded))));
+      const c = JSON.parse(json);
+      const data = {
+        company: c.co || '',
+        email: c.em || '',
+        invoiceNum: c.num || '',
+        from: c.fr || '',
+        billTo: c.bt || '',
+        issueDate: c.id || '',
+        dueDate: c.dd || '',
+        items: c.it || [],
+        taxRate: c.tx || '0',
+        notes: c.no || '',
+        stripeLink: c.sl || '',
+        paypalLink: c.pl || '',
+        customLink: c.cl || '',
+        customLabel: c.cb || '',
+        lang: c.ln || 'en',
+        currency: c.cu || 'USD',
+        theme: c.th || 'classic'
+      };
+      restoreInvoice(data);
+      window.history.replaceState({}, '', window.location.pathname);
+      return true;
+    } catch(e) {
+      console.error('Failed to restore shared invoice:', e);
+      return false;
+    }
+  }
+
   function preparePrint(mode) {
     const hidden = [];
     const body = document.body;
@@ -2235,11 +2323,14 @@
   buildCurrencyMenu();
   updateVersionCount();
 
-  // Auto-restore from last session
-  try {
-    const saved = JSON.parse(localStorage.getItem(AUTOSAVE_KEY));
-    if (saved) restoreInvoice(saved);
-  } catch(e) {}
+  // Auto-restore: shared URL takes priority over localStorage
+  const restoredFromShare = restoreFromShareUrl();
+  if (!restoredFromShare) {
+    try {
+      const saved = JSON.parse(localStorage.getItem(AUTOSAVE_KEY));
+      if (saved) restoreInvoice(saved);
+    } catch(e) {}
+  }
 
   // Auto-select language from ?lang= query param
   const urlLang = new URLSearchParams(window.location.search).get('lang');
