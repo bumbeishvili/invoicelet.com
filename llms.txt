@@ -1,0 +1,42 @@
+# Invoicelet
+
+> Free, private online invoice generator. No sign-up, no server, no data stored. Create and download professional PDF invoices instantly.
+
+## About
+
+Invoicelet is a browser-based invoice generator at https://invoicelet.com. It runs entirely client-side — no data is sent to any server. Invoices and saved versions are stored locally in the browser using localStorage.
+
+## Features
+
+- Instant PDF export (one-click download)
+- 18+ currencies (USD, EUR, GBP, JPY, INR, GEL, and more)
+- 16 languages (English, Spanish, French, German, Japanese, Chinese, Arabic, and more)
+- Customizable tax rates with automatic calculation
+- Version history — save, name, search, and restore invoices
+- Multiple professionally designed invoice style themes
+- Fully editable — click any field to customize
+- Mobile-optimized responsive design
+- 100% private — no data leaves the browser
+- No sign-up or account required
+- Works offline once loaded
+
+## How It Works
+
+1. Open https://invoicelet.com
+2. Fill in company name, address, and client details, in place
+3. Add line items with descriptions, quantities, and prices
+4. Choose currency and language
+5. Click the PDF button to download
+
+## Technical Details
+
+- Single-page HTML/CSS/JS application
+- Client-side PDF generation via html2pdf.js
+- localStorage for autosave and version management
+- Google Fonts: DM Sans, Playfair Display
+- Hosted on GitHub Pages
+
+## Links
+
+- Website: https://invoicelet.com
+- Repository: https://github.com/bumbeishvili/invoicelet.com
