@@ -480,12 +480,9 @@
   .items-table tbody td:nth-child(3) { text-align: right; }
   .items-table tbody td:nth-child(4) { text-align: right; font-weight: 500; }
 
-  .items-table tbody td:last-child .remove-row {
-    opacity: 0;
-    transition: opacity 0.15s;
-  }
-  .items-table tbody tr:hover .remove-row {
-    opacity: 1;
+  .items-table thead th:last-child,
+  .items-table tbody td:last-child {
+    display: none;
   }
 
   .remove-row {
@@ -812,6 +809,8 @@
     .items-table thead th:first-child, .items-table tbody td:first-child { white-space: normal; min-width: 120px; }
     .totals-block { width: 100%; }
     .add-row-btn { width: 100%; text-align: center; }
+    .items-table thead th:last-child,
+    .items-table tbody td:last-child { display: table-cell; }
     .items-table tbody td:last-child .remove-row { opacity: 1; }
     .toolbar { gap: 4px; padding: 10px 12px; }
     .btn-label { display: none; }
