@@ -48,6 +48,12 @@
 <meta name="theme-color" content="#1a1a2e">
 <link rel="alternate" hreflang="en" href="https://invoicelet.com/">
 <link rel="alternate" hreflang="x-default" href="https://invoicelet.com/">
+<link rel="alternate" hreflang="es" href="https://invoicelet.com/es/">
+<link rel="alternate" hreflang="pt" href="https://invoicelet.com/pt/">
+<link rel="alternate" hreflang="ar" href="https://invoicelet.com/ar/">
+<link rel="alternate" hreflang="hi" href="https://invoicelet.com/hi/">
+<link rel="alternate" hreflang="ko" href="https://invoicelet.com/ko/">
+<link rel="alternate" hreflang="tr" href="https://invoicelet.com/tr/">
 
 <!-- Structured Data: WebApplication -->
 <script type="application/ld+json">
@@ -1954,6 +1960,10 @@
     const saved = JSON.parse(localStorage.getItem(AUTOSAVE_KEY));
     if (saved) restoreInvoice(saved);
   } catch(e) {}
+
+  // Auto-select language from ?lang= query param
+  const urlLang = new URLSearchParams(window.location.search).get('lang');
+  if (urlLang && i18n[urlLang]) selectLang(urlLang);
 
   recalc();
 
