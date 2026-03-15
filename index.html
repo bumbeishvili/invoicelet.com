@@ -500,7 +500,14 @@
 
   .items-table thead th:last-child,
   .items-table tbody td:last-child {
-    display: none;
+    width: 30px;
+  }
+  .items-table tbody td:last-child .remove-row {
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .items-table tbody tr:hover td:last-child .remove-row {
+    opacity: 1;
   }
 
   .remove-row {
@@ -1456,7 +1463,10 @@
   const AUTOSAVE_KEY = 'invoice_autosave';
 
   let _autosaveTimer = null;
+  let isSharedReadOnly = false;
+
   function scheduleAutosave() {
+    if (isSharedReadOnly) return;
     clearTimeout(_autosaveTimer);
     _autosaveTimer = setTimeout(function() {
       localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(captureInvoice()));
@@ -2138,7 +2148,6 @@
         theme: c.th || 'classic'
       };
       restoreInvoice(data);
-      window.history.replaceState({}, '', window.location.pathname);
       return true;
     } catch(e) {
       console.error('Failed to restore shared invoice:', e);
@@ -2223,6 +2232,9 @@
 
       addBtn.style.display = 'none';
       removeButtons.forEach(b => b.style.display = 'none');
+      // Hide actions column entirely
+      const actionsCells = document.querySelectorAll('.items-table thead th:last-child, .items-table tbody td:last-child');
+      actionsCells.forEach(c => c.style.display = 'none');
       if (emptyRow) emptyRow.style.display = 'none';
       hidden.forEach(el => el.style.display = 'none');
       const currencyPick = document.querySelector('.currency-pick');
@@ -2295,6 +2307,7 @@
         header.style.cssText = origHeaderMargin;
         addBtn.style.display = '';
         removeButtons.forEach(b => b.style.display = '');
+        actionsCells.forEach(c => c.style.display = '');
         if (emptyRow) emptyRow.style.display = '';
         hidden.forEach(el => { el.classList.remove('print-hide'); el.style.display = ''; });
         editables.forEach(el => el.setAttribute('contenteditable', 'true'));
@@ -2442,7 +2455,40 @@
 
   // Auto-restore: shared URL takes priority over localStorage
   const restoredFromShare = restoreFromShareUrl();
-  if (!restoredFromShare) {
+  if (restoredFromShare) {
+    isSharedReadOnly = true;
+    // Disable all editing
+    document.querySelectorAll('[contenteditable]').forEach(function(el) {
+      el.removeAttribute('contenteditable');
+    });
+    // Hide toolbar editing controls
+    document.querySelector('.toolbar').style.display = 'none';
+    // Hide add/remove row buttons
+    const addRowBtn = document.getElementById('add-row-btn');
+    if (addRowBtn) addRowBtn.style.display = 'none';
+    document.querySelectorAll('.remove-row').forEach(function(b) { b.style.display = 'none'; });
+    // Hide actions column entirely
+    document.querySelectorAll('.items-table thead th:last-child, .items-table tbody td:last-child').forEach(function(c) { c.style.display = 'none'; });
+    // Hide payment add/edit/remove buttons
+    document.querySelectorAll('.pay-btn-empty, .payment-link-edit button').forEach(function(b) { b.style.display = 'none'; });
+    // Hide tax rate editing
+    const taxRate = document.getElementById('tax-rate');
+    if (taxRate) taxRate.setAttribute('contenteditable', 'false');
+    // Hide currency dropdown
+    const currencyPick = document.querySelector('.currency-pick');
+    if (currencyPick) currencyPick.style.display = 'none';
+    // Hide SEO content section (kept in HTML for crawlers)
+    const seoContent = document.querySelector('.seo-content');
+    if (seoContent) seoContent.style.display = 'none';
+    // Add "Create your own" CTA below the invoice
+    const cta = document.createElement('a');
+    cta.href = window.location.origin + window.location.pathname;
+    cta.textContent = 'Create your own invoice with Invoicelet';
+    cta.style.cssText = 'display:block;text-align:center;margin:32px auto 0;padding:10px 24px;font-family:DM Sans,sans-serif;font-size:13px;font-weight:600;color:#8a8a99;text-decoration:none;transition:color 0.15s;';
+    cta.onmouseenter = function() { this.style.color = '#1a1a2e'; };
+    cta.onmouseleave = function() { this.style.color = '#8a8a99'; };
+    document.querySelector('.invoice').parentElement.appendChild(cta);
+  } else {
     try {
       const saved = JSON.parse(localStorage.getItem(AUTOSAVE_KEY));
       if (saved) restoreInvoice(saved);
