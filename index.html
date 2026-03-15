@@ -240,6 +240,23 @@
 
   .lang-flag { font-size: 18px; line-height: 1; }
 
+  /* Share modal */
+  .share-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+  .share-modal { background: #fff; border-radius: 12px; padding: 28px 28px 20px; max-width: 480px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); font-family: 'DM Sans', sans-serif; }
+  .share-modal h3 { margin: 0 0 16px; font-size: 16px; font-weight: 700; color: #1a1a2e; }
+  .share-url-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .share-url-input { flex: 1; padding: 8px 12px; border: 1px solid #e4e2dd; border-radius: 6px; font-size: 13px; font-family: monospace; color: #1a1a2e; background: #faf9f7; outline: none; word-break: break-all; resize: none; min-height: 80px; line-height: 1.4; }
+  .share-url-input:focus { border-color: #635bff; }
+  .share-copy-btn { padding: 8px 16px; border: none; border-radius: 6px; background: #1a1a2e; color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+  .share-copy-btn:hover { background: #2d2d4a; }
+  .share-shorten-btn { padding: 8px 16px; border: 1px solid #e4e2dd; border-radius: 6px; background: #fff; color: #1a1a2e; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .share-shorten-btn:hover { background: rgba(0,0,0,0.04); }
+  .share-shorten-btn:disabled { opacity: 0.5; cursor: default; }
+  .share-close-btn { padding: 6px 14px; border: none; background: none; color: #8a8a99; font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .share-close-btn:hover { color: #1a1a2e; }
+  .share-actions { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+  .share-status { font-size: 12px; color: #8a8a99; margin-right: auto; }
+
   /* Unified dropdown */
   .dropdown-wrap { position: relative; }
   .dropdown-menu {
@@ -1947,7 +1964,64 @@
     checkEmpty();
   }
 
+  // --- URL Shorteners ---
+  const shorteners = [
+    {
+      name: 'da.gd',
+      shorten: async (url) => {
+        const r = await fetch('https://da.gd/s?url=' + encodeURIComponent(url));
+        const text = await r.text();
+        if (!text.startsWith('http')) throw new Error('da.gd failed');
+        return text.trim();
+      }
+    },
+    {
+      name: 'spoo.me',
+      shorten: async (url) => {
+        const r = await fetch('https://spoo.me/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+          body: 'url=' + encodeURIComponent(url)
+        });
+        const data = await r.json();
+        if (!data.short_url) throw new Error('spoo.me failed');
+        return data.short_url;
+      }
+    }
+  ];
+  let rotationIndex = 0;
+
+  async function shortenUrl(url) {
+    for (let i = 0; i < shorteners.length; i++) {
+      const idx = (rotationIndex + i) % shorteners.length;
+      const svc = shorteners[idx];
+      try {
+        const result = await svc.shorten(url);
+        rotationIndex = (idx + 1) % shorteners.length;
+        return result;
+      } catch (e) {
+        console.warn(svc.name + ' failed:', e.message);
+      }
+    }
+    return url; // fallback to long URL
+  }
+
   // --- Sharing ---
+  function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    return Promise.resolve();
+  }
+
   function shareInvoice() {
     const data = captureInvoice();
     const compact = {
@@ -1972,26 +2046,69 @@
     Object.keys(compact).forEach(k => compact[k] === undefined && delete compact[k]);
     const json = JSON.stringify(compact);
     const encoded = btoa(unescape(encodeURIComponent(json)));
-    const url = window.location.origin + window.location.pathname + '?d=' + encodeURIComponent(encoded);
-    const btn = document.getElementById('btn-share');
-    const origLabel = btn.querySelector('.btn-label').textContent;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(function() {
-        btn.querySelector('.btn-label').textContent = 'Copied!';
-        setTimeout(function() { btn.querySelector('.btn-label').textContent = origLabel; }, 2000);
-      });
-    } else {
-      const ta = document.createElement('textarea');
-      ta.value = url;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      ta.remove();
-      btn.querySelector('.btn-label').textContent = 'Copied!';
-      setTimeout(function() { btn.querySelector('.btn-label').textContent = origLabel; }, 2000);
-    }
+    const longUrl = window.location.origin + window.location.pathname + '?d=' + encodeURIComponent(encoded);
+
+    // Copy long URL immediately
+    copyToClipboard(longUrl);
+
+    // Show modal
+    const overlay = document.createElement('div');
+    overlay.className = 'share-overlay';
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+    const modal = document.createElement('div');
+    modal.className = 'share-modal';
+    modal.innerHTML = '<h3>Share Invoice</h3>' +
+      '<div class="share-url-row">' +
+        '<textarea class="share-url-input" readonly onclick="this.select()">' + longUrl.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</textarea>' +
+        '<button class="share-copy-btn" id="share-copy">Copied!</button>' +
+      '</div>' +
+      '<div class="share-actions">' +
+        '<span class="share-status" id="share-status">Link copied to clipboard</span>' +
+        '<button class="share-shorten-btn" id="share-shorten">Shorten link</button>' +
+        '<button class="share-close-btn" id="share-close">Close</button>' +
+      '</div>';
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    const urlInput = modal.querySelector('.share-url-input');
+    const copyBtn = document.getElementById('share-copy');
+    const shortenBtn = document.getElementById('share-shorten');
+    const statusEl = document.getElementById('share-status');
+    const closeBtn = document.getElementById('share-close');
+
+    // Reset copy button after 2s
+    setTimeout(function() { copyBtn.textContent = 'Copy'; }, 2000);
+
+    copyBtn.onclick = function() {
+      copyToClipboard(urlInput.value);
+      copyBtn.textContent = 'Copied!';
+      statusEl.textContent = 'Link copied to clipboard';
+      setTimeout(function() { copyBtn.textContent = 'Copy'; }, 2000);
+    };
+
+    shortenBtn.onclick = async function() {
+      shortenBtn.disabled = true;
+      shortenBtn.textContent = 'Shortening…';
+      statusEl.textContent = '';
+      try {
+        const shortUrl = await shortenUrl(longUrl);
+        urlInput.value = shortUrl;
+        copyToClipboard(shortUrl);
+        copyBtn.textContent = 'Copied!';
+        statusEl.textContent = 'Short link copied!';
+        shortenBtn.textContent = 'Shortened ✓';
+        setTimeout(function() { copyBtn.textContent = 'Copy'; }, 2000);
+      } catch(e) {
+        statusEl.textContent = 'Shortening failed';
+        shortenBtn.textContent = 'Retry';
+        shortenBtn.disabled = false;
+      }
+    };
+
+    closeBtn.onclick = function() { overlay.remove(); };
+    document.addEventListener('keydown', function escHandler(e) {
+      if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', escHandler); }
+    });
   }
 
   function restoreFromShareUrl() {
