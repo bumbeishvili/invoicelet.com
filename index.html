@@ -1861,6 +1861,8 @@
     const v = versions.find(v => v.id === id);
     if (!v) return;
     restoreInvoice(v.data);
+    const drawer = document.getElementById('versions-drawer');
+    if (drawer) drawer.style.display = 'none';
   }
 
   function deleteVersion(id) {
@@ -2123,8 +2125,10 @@
 
   function restoreFromShareUrl() {
     const params = new URLSearchParams(window.location.search);
-    const encoded = params.get('d');
+    let encoded = params.get('d');
     if (!encoded) return false;
+    // Strip tracking params that platforms append (e.g. Facebook's ?fbclid=)
+    encoded = encoded.split('?')[0].split('&')[0];
     try {
       const json = decodeURIComponent(escape(atob(decodeURIComponent(encoded))));
       const c = JSON.parse(json);
