@@ -544,11 +544,18 @@
   .total-label { color: #8a8a99; }
   .grand-total .total-label { color: #1a1a2e; }
 
-  /* Notes */
-  .notes-section {
+  /* Notes + Payment row */
+  .notes-payment-row {
     margin-top: 48px;
     padding-top: 32px;
     border-top: 1px solid #e4e2dd;
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+  }
+  .notes-section {
+    flex: 1;
+    min-width: 0;
   }
 
   .notes-section label {
@@ -566,6 +573,88 @@
     line-height: 1.7;
     color: #8a8a99;
   }
+
+  /* Payment Links */
+  .payment-section {
+    flex-shrink: 0;
+    width: 220px;
+  }
+  .payment-section label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #8a8a99;
+    margin-bottom: 12px;
+  }
+  .payment-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .pay-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .pay-btn:hover { opacity: 0.85; }
+  .pay-btn-stripe {
+    background: #635bff;
+    color: #fff;
+  }
+  .pay-btn-paypal {
+    background: #0070ba;
+    color: #fff;
+  }
+  .pay-btn-custom {
+    background: #1a1a2e;
+    color: #fff;
+  }
+  .pay-btn-empty {
+    border: 1px dashed #e4e2dd;
+    background: none;
+    color: #8a8a99;
+    font-weight: 400;
+    font-size: 13px;
+  }
+  .pay-btn-empty:hover { border-color: #c4553a; color: #c4553a; }
+  .payment-link-input {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    border: 1px solid #e4e2dd;
+    border-radius: 6px;
+    padding: 8px 12px;
+    outline: none;
+    width: 320px;
+    max-width: 100%;
+    color: #1a1a2e;
+  }
+  .payment-link-input:focus { border-color: #c4553a; }
+  .payment-link-edit {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .payment-link-edit button {
+    background: none;
+    border: none;
+    color: #8a8a99;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    line-height: 1;
+  }
+  .payment-link-edit button:hover { color: #c4553a; }
 
   /* Print */
   .empty-state {
@@ -815,6 +904,8 @@
     .toolbar { gap: 4px; padding: 10px 12px; }
     .btn-label { display: none; }
     .versions-drawer { width: 100% !important; right: 0 !important; }
+    .notes-payment-row { flex-direction: column; gap: 24px; }
+    .payment-section { width: 100%; }
 
     /* Theme-specific mobile overrides */
     .invoice.theme-modern .header { margin: -28px -18px 28px; padding: 28px 18px 20px; }
@@ -920,6 +1011,9 @@
     }
     .add-row-btn, .remove-row { display: none !important; }
     .print-hide { display: none !important; }
+    .pay-btn-empty { display: none !important; }
+    .payment-link-edit button { display: none !important; }
+    .payment-link-edit { margin-bottom: 0 !important; }
     .empty-state-row { display: none !important; }
     .versions-drawer { display: none !important; }
     .seo-content { display: none !important; }
@@ -1105,10 +1199,20 @@
     </div>
   </div>
 
-  <!-- Notes -->
-  <div class="notes-section">
-    <label data-i18n="notes">Notes</label>
-    <div class="value" contenteditable="true" data-placeholder="Payment terms, bank details, thank you note…" data-ph="phNotes">Payment due within 30 days.<br>Bank: Sample Bank Ltd.<br>IBAN: GB29 NWBK 6016 1331 9268 19<br>BIC/SWIFT: NWBKGB2L<br><br>Thank you for your business.</div>
+  <!-- Notes + Payment -->
+  <div class="notes-payment-row">
+    <div class="notes-section">
+      <label data-i18n="notes">Notes</label>
+      <div class="value" contenteditable="true" data-placeholder="Payment terms, bank details, thank you note…" data-ph="phNotes">Payment due within 30 days.<br>Bank: Sample Bank Ltd.<br>IBAN: GB29 NWBK 6016 1331 9268 19<br>BIC/SWIFT: NWBKGB2L<br><br>Thank you for your business.</div>
+    </div>
+    <div class="payment-section" id="payment-section">
+      <label>Pay Online</label>
+      <div class="payment-buttons" id="payment-buttons">
+        <button class="pay-btn pay-btn-empty" onclick="editPaymentLink('stripe')" id="stripe-add" title="Add Stripe payment link">+ Stripe</button>
+        <button class="pay-btn pay-btn-empty" onclick="editPaymentLink('paypal')" id="paypal-add" title="Add PayPal payment link">+ PayPal</button>
+        <button class="pay-btn pay-btn-empty" onclick="editPaymentLink('custom')" id="custom-add" title="Add custom payment link">+ Other</button>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -1376,6 +1480,160 @@
     localStorage.setItem(SEED_KEY, '1');
   }
 
+  // --- Payment Links ---
+  const paymentLinks = { stripe: '', paypal: '', custom: '' };
+  let customPayLabel = '';
+  const paymentSvgs = {
+    stripe: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z"/></svg>',
+    paypal: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 2.17A.786.786 0 0 1 5.72 1.5h6.326c2.1 0 3.87.587 4.8 1.63.918 1.03 1.153 2.453.7 4.23l-.003.015c-.56 2.476-1.857 4.132-3.552 4.94-1.619.772-3.643.86-5.467.86H7.384a.785.785 0 0 0-.774.66l-1.255 7.5H7.84l-.764 2.002zm13.835-14.82c-.006.032-.013.063-.02.095-1.065 5.465-4.78 7.372-9.501 7.372H9.727a1.168 1.168 0 0 0-1.153.99L7.39 22.49a.607.607 0 0 0 .6.7h4.22a1.024 1.024 0 0 0 1.012-.868l.042-.215.803-5.088.052-.282a1.024 1.024 0 0 1 1.012-.869h.636c4.12 0 7.345-1.673 8.288-6.516.394-2.023.19-3.712-.852-4.9a4.092 4.092 0 0 0-1.172-.935z"/></svg>',
+    custom: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M3.5 3A1.5 1.5 0 0 0 2 4.5v3A1.5 1.5 0 0 0 3.5 9h1V8H3.5a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5h17a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-1v1h1A1.5 1.5 0 0 0 22 7.5v-3A1.5 1.5 0 0 0 20.5 3h-17zM5 8v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8H5zm4 3a1 1 0 0 1 1-1h4a1 1 0 1 1 0 2h-4a1 1 0 0 1-1-1z"/></svg>'
+  };
+  function svgToDataUrl(svg) { return 'data:image/svg+xml;base64,' + btoa(svg); }
+
+  function editPaymentLink(type) {
+    const container = document.getElementById('payment-buttons');
+    const addBtn = document.getElementById(type + '-add');
+    if (addBtn) addBtn.style.display = 'none';
+
+    const wrap = document.createElement('div');
+    wrap.className = 'payment-link-edit';
+    wrap.id = type + '-edit';
+    const input = document.createElement('input');
+    input.type = 'url';
+    input.className = 'payment-link-input';
+    input.placeholder = type === 'stripe' ? 'https://buy.stripe.com/...' : type === 'paypal' ? 'https://paypal.me/...' : 'https://...';
+    input.value = paymentLinks[type] || '';
+    if (type === 'custom') {
+      const labelInput = document.createElement('input');
+      labelInput.type = 'text';
+      labelInput.className = 'payment-link-input';
+      labelInput.placeholder = 'Button text, e.g. Pay with Venmo';
+      labelInput.value = customPayLabel || '';
+      labelInput.style.width = '220px';
+      labelInput.id = 'custom-label-input';
+      labelInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); saveBtn.click(); }
+        if (e.key === 'Escape') { e.preventDefault(); cancelBtn.click(); }
+      });
+      wrap.appendChild(labelInput);
+    }
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = '✓';
+    saveBtn.title = 'Save';
+    saveBtn.onclick = function() {
+      const url = input.value.trim();
+      if (url && isValidPaymentUrl(url)) {
+        if (type === 'custom') {
+          const li = document.getElementById('custom-label-input');
+          customPayLabel = li ? li.value.trim() || 'Pay Online' : 'Pay Online';
+        }
+        setPaymentLink(type, url);
+      } else if (!url) {
+        removePaymentLink(type);
+      } else {
+        input.style.borderColor = '#c4553a';
+        return;
+      }
+    };
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = '✕';
+    cancelBtn.title = 'Cancel';
+    cancelBtn.onclick = function() {
+      wrap.remove();
+      if (!paymentLinks[type]) addBtn.style.display = '';
+    };
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); saveBtn.click(); }
+      if (e.key === 'Escape') { e.preventDefault(); cancelBtn.click(); }
+    });
+    wrap.appendChild(input);
+    wrap.appendChild(saveBtn);
+    wrap.appendChild(cancelBtn);
+    container.insertBefore(wrap, addBtn);
+    input.focus();
+  }
+
+  function isValidPaymentUrl(url) {
+    try {
+      const u = new URL(url);
+      return u.protocol === 'https:';
+    } catch { return false; }
+  }
+
+  function setPaymentLink(type, url) {
+    paymentLinks[type] = url;
+    const container = document.getElementById('payment-buttons');
+    const addBtn = document.getElementById(type + '-add');
+    const editWrap = document.getElementById(type + '-edit');
+    if (editWrap) editWrap.remove();
+    if (addBtn) addBtn.style.display = 'none';
+
+    // Remove existing button if any
+    const existing = document.getElementById(type + '-link');
+    if (existing) existing.parentElement.remove();
+
+    const wrap = document.createElement('div');
+    wrap.className = 'payment-link-edit';
+    wrap.style.marginBottom = '0';
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.id = type + '-link';
+    a.className = 'pay-btn pay-btn-' + type;
+    const iconImg = '<img src="' + svgToDataUrl(paymentSvgs[type]) + '" alt="" style="width:18px;height:18px;flex-shrink:0;">';
+    if (type === 'stripe') {
+      a.innerHTML = iconImg + 'Pay with Stripe';
+    } else if (type === 'paypal') {
+      a.innerHTML = iconImg + 'Pay with PayPal';
+    } else {
+      const label = customPayLabel || 'Pay Online';
+      a.innerHTML = iconImg + label.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    const editBtn = document.createElement('button');
+    editBtn.textContent = '✎';
+    editBtn.title = 'Edit link';
+    editBtn.className = 'print-hide';
+    editBtn.onclick = function() {
+      wrap.remove();
+      addBtn.style.display = '';
+      editPaymentLink(type);
+    };
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = '✕';
+    removeBtn.title = 'Remove';
+    removeBtn.className = 'print-hide';
+    removeBtn.onclick = function() { removePaymentLink(type); };
+    wrap.appendChild(a);
+    wrap.appendChild(editBtn);
+    wrap.appendChild(removeBtn);
+    container.insertBefore(wrap, addBtn);
+    updatePaymentSectionVisibility();
+    scheduleAutosave();
+  }
+
+  function removePaymentLink(type) {
+    paymentLinks[type] = '';
+    if (type === 'custom') customPayLabel = '';
+    const existing = document.getElementById(type + '-link');
+    if (existing) existing.parentElement.remove();
+    const editWrap = document.getElementById(type + '-edit');
+    if (editWrap) editWrap.remove();
+    const addBtn = document.getElementById(type + '-add');
+    if (addBtn) addBtn.style.display = '';
+    updatePaymentSectionVisibility();
+    scheduleAutosave();
+  }
+
+  function updatePaymentSectionVisibility() {
+    // Hide the "Pay Online" label if no links set and not editing
+    const section = document.getElementById('payment-section');
+    const hasLinks = paymentLinks.stripe || paymentLinks.paypal || paymentLinks.custom;
+    const editing = document.getElementById('stripe-edit') || document.getElementById('paypal-edit') || document.getElementById('custom-edit');
+    section.querySelector('label').style.display = (hasLinks || editing) ? '' : 'none';
+  }
+  updatePaymentSectionVisibility();
+
   function captureInvoice() {
     const data = {};
     data.company = document.querySelector('.brand-name').innerHTML;
@@ -1395,6 +1653,10 @@
     });
     data.taxRate = document.getElementById('tax-rate').textContent;
     data.notes = document.querySelector('.notes-section .value').innerHTML;
+    data.stripeLink = paymentLinks.stripe;
+    data.paypalLink = paymentLinks.paypal;
+    data.customLink = paymentLinks.custom;
+    data.customLabel = customPayLabel;
     data.lang = currentLang;
     data.currency = currentCurrency.code;
     data.theme = currentTheme;
@@ -1432,6 +1694,13 @@
 
     document.getElementById('tax-rate').textContent = data.taxRate || '0';
     document.querySelector('.notes-section .value').innerHTML = data.notes || '';
+
+    if (data.stripeLink) setPaymentLink('stripe', data.stripeLink);
+    if (data.paypalLink) setPaymentLink('paypal', data.paypalLink);
+    if (data.customLink) {
+      customPayLabel = data.customLabel || 'Pay Online';
+      setPaymentLink('custom', data.customLink);
+    }
 
     if (data.currency) selectCurrency(data.currency);
     if (data.lang) selectLang(data.lang);
@@ -1731,6 +2000,12 @@
       section.classList.add('print-hide'); hidden.push(section);
     }
 
+    // Hide payment section if no links
+    if (!paymentLinks.stripe && !paymentLinks.paypal && !paymentLinks.custom) {
+      const paySection = document.getElementById('payment-section');
+      paySection.classList.add('print-hide'); hidden.push(paySection);
+    }
+
     if (mode === 'bw') {
       // unused, kept for compat
       hidden.forEach(el => el.classList.remove('print-hide'));
@@ -1747,6 +2022,11 @@
       hidden.forEach(el => el.style.display = 'none');
       const currencyPick = document.querySelector('.currency-pick');
       currencyPick.style.display = 'none';
+
+      // Hide payment edit/remove buttons and empty add buttons
+      const payEditBtns = document.querySelectorAll('.payment-link-edit button, .pay-btn-empty');
+      const payEditOrigDisplay = [];
+      payEditBtns.forEach(b => { payEditOrigDisplay.push(b.style.display); b.style.display = 'none'; });
 
       const badge = document.createElement('a');
       badge.href = 'https://invoicelet.com';
@@ -1814,6 +2094,7 @@
         hidden.forEach(el => { el.classList.remove('print-hide'); el.style.display = ''; });
         editables.forEach(el => el.setAttribute('contenteditable', 'true'));
         currencyPick.style.display = '';
+        payEditBtns.forEach((b, i) => b.style.display = payEditOrigDisplay[i] || '');
         badge.remove();
         btn.textContent = origText;
         btn.disabled = false;
