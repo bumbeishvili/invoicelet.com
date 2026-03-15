@@ -2036,6 +2036,7 @@
 
   function shareInvoice() {
     localStorage.setItem('invoicelet_share_count', (parseInt(localStorage.getItem('invoicelet_share_count')) || 0) + 1);
+    gtag('event', 'share_invoice');
     const data = captureInvoice();
     const compact = {
       co: data.company,
@@ -2162,6 +2163,7 @@
 
   function preparePrint(mode) {
     localStorage.setItem('invoicelet_pdf_count', (parseInt(localStorage.getItem('invoicelet_pdf_count')) || 0) + 1);
+    gtag('event', 'download_pdf');
     const hidden = [];
     const body = document.body;
 
