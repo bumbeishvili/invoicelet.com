@@ -46,6 +46,11 @@
 <!-- Additional SEO signals -->
 <meta name="application-name" content="Invoicelet">
 <meta name="theme-color" content="#1a1a2e">
+<link rel="manifest" href="/manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Invoicelet">
+<link rel="apple-touch-icon" href="/icon-192.svg">
 <link rel="alternate" hreflang="en" href="https://invoicelet.com/">
 <link rel="alternate" hreflang="x-default" href="https://invoicelet.com/">
 <link rel="alternate" hreflang="es" href="https://invoicelet.com/es/">
@@ -1082,6 +1087,48 @@
 
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
+  .pwa-install-btn { display: none !important; }
+
+  }
+
+  /* PWA Install Button */
+  .pwa-install-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: auto;
+    padding: 0 12px;
+    height: 40px;
+    border: 1px solid #e4e2dd;
+    border-radius: 8px;
+    background: #fff;
+    color: #1a1a2e;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    transition: all 0.15s;
+  }
+  .pwa-install-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .pwa-install-btn:hover { background: rgba(0,0,0,0.04); transform: translateY(-1px); }
+  .pwa-install-btn.show { display: flex; }
+
+  /* iOS Install Modal */
+  .ios-install-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 9999; display: flex; align-items: center; justify-content: center; animation: fadeUp 0.2s ease; }
+  .ios-install-modal { background: #fff; border-radius: 12px; padding: 28px 28px 20px; max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); font-family: 'DM Sans', sans-serif; }
+  .ios-install-modal h3 { margin: 0 0 20px; font-size: 16px; font-weight: 700; color: #1a1a2e; }
+  .ios-install-steps { list-style: none; padding: 0; margin: 0 0 20px; }
+  .ios-install-steps li { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; font-size: 14px; color: #1a1a2e; line-height: 1.5; border-bottom: 1px solid #f0efec; }
+  .ios-install-steps li:last-child { border-bottom: none; }
+  .ios-install-step-num { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: #1a1a2e; color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .ios-install-steps .ios-icon { display: inline-block; vertical-align: middle; }
+  .ios-install-close { display: block; margin: 0 0 0 auto; padding: 8px 20px; border: none; border-radius: 6px; background: #1a1a2e; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .ios-install-close:hover { background: #2d2d4a; }
+
+  @media (max-width: 600px) {
+    .pwa-install-btn .btn-label { display: none; }
   }
 </style>
 </head>
@@ -1106,6 +1153,11 @@
     </button>
     <div class="dropdown-menu align-left" id="style-menu" role="listbox" aria-label="Invoice style options"></div>
   </div>
+
+  <button class="pwa-install-btn" id="pwa-install-btn" onclick="handleInstallClick()" title="Use Offline" aria-label="Use Invoicelet offline">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    <span class="btn-label">Use Offline</span>
+  </button>
 
   <div style="flex:1"></div>
 
@@ -2618,6 +2670,84 @@
   // Auto-update footer year
   const yearEl = document.getElementById('seo-year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+  // --- PWA Install ---
+  let deferredInstallPrompt = null;
+  const pwaInstallBtn = document.getElementById('pwa-install-btn');
+
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(function(err) {
+      console.warn('SW registration failed:', err);
+    });
+  }
+
+  // Listen for the beforeinstallprompt event (Chrome, Edge, etc.)
+  window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    if (!isSharedReadOnly) pwaInstallBtn.classList.add('show');
+  });
+
+  // Hide button after successful install
+  window.addEventListener('appinstalled', function() {
+    pwaInstallBtn.classList.remove('show');
+    deferredInstallPrompt = null;
+  });
+
+  // Detect iOS Safari (no beforeinstallprompt support)
+  function isIos() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+  function isInStandaloneMode() {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true;
+  }
+
+  // Show install button on iOS Safari if not already installed and not shared
+  if (isIos() && !isInStandaloneMode() && !isSharedReadOnly) {
+    pwaInstallBtn.classList.add('show');
+  }
+
+  function handleInstallClick() {
+    if (deferredInstallPrompt) {
+      // Chrome/Edge: trigger native install prompt
+      deferredInstallPrompt.prompt();
+      deferredInstallPrompt.userChoice.then(function(result) {
+        if (result.outcome === 'accepted') {
+          pwaInstallBtn.classList.remove('show');
+        }
+        deferredInstallPrompt = null;
+      });
+    } else if (isIos()) {
+      // iOS: show instructional modal
+      showIosInstallModal();
+    }
+  }
+
+  function showIosInstallModal() {
+    const overlay = document.createElement('div');
+    overlay.className = 'ios-install-overlay';
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+    const modal = document.createElement('div');
+    modal.className = 'ios-install-modal';
+    modal.innerHTML =
+      '<h3>Use Invoicelet Offline</h3>' +
+      '<ol class="ios-install-steps">' +
+        '<li><span class="ios-install-step-num">1</span><span>Tap the <strong>Share</strong> button <span class="ios-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c4553a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></span> in the Safari toolbar</span></li>' +
+        '<li><span class="ios-install-step-num">2</span><span>Scroll down and tap <strong>"Add to Home Screen"</strong></span></li>' +
+        '<li><span class="ios-install-step-num">3</span><span>Tap <strong>"Add"</strong> in the top right corner</span></li>' +
+      '</ol>' +
+      '<button class="ios-install-close" id="ios-install-close">Got it</button>';
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    document.getElementById('ios-install-close').onclick = function() { overlay.remove(); };
+    document.addEventListener('keydown', function escHandler(e) {
+      if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', escHandler); }
+    });
+  }
 </script>
 
 </body>
