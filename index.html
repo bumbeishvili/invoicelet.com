@@ -1213,7 +1213,7 @@
     </div>
     <div class="invoice-title">
       <h1 data-i18n="invoice">Invoice</h1>
-      <div class="invoice-number"># <span contenteditable="true" data-placeholder="001">001</span></div>
+      <div class="invoice-number"># <span contenteditable="true" data-placeholder="001"></span></div>
       <div class="currency-pick" id="currency-wrap">
         <button class="currency-btn" id="currency-btn" onclick="toggleDropdown('currency-menu')" title="Change currency" aria-label="Select currency" aria-haspopup="listbox" aria-expanded="false">
           <span id="currency-symbol">$</span>
@@ -1241,7 +1241,7 @@
   <div class="dates-row">
     <div class="date-field">
       <label data-i18n="issueDate">Issue Date</label>
-      <div class="value" contenteditable="true" data-placeholder="YYYY-MM-DD">2026-03-14</div>
+      <div class="value" contenteditable="true" data-placeholder="YYYY-MM-DD"></div>
     </div>
     <div class="date-field">
       <label data-i18n="dueDate">Due Date</label>
@@ -1543,7 +1543,8 @@
     if (isSharedReadOnly) return;
     clearTimeout(_autosaveTimer);
     _autosaveTimer = setTimeout(function() {
-      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(captureInvoice()));
+      var _d = captureInvoice(); delete _d.invoiceNum; delete _d.issueDate;
+      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(_d));
     }, 400);
   }
 
@@ -1597,7 +1598,7 @@
       data: {
         company: demo.company,
         email: demo.email,
-        invoiceNum: '001',
+        invoiceNum: new Date().toISOString().slice(0, 10).replace(/-/g, ''),
         from: demo.from,
         billTo: demo.billTo,
         issueDate: new Date().toISOString().slice(0, 10),
@@ -1772,8 +1773,8 @@
   function captureInvoice() {
     const data = {};
     data.company = document.querySelector('.brand-name').innerHTML;
-    data.email = document.querySelector('.brand-name').parentElement.querySelector('span[contenteditable]').innerHTML;
-    data.invoiceNum = document.querySelector('.invoice-number span[contenteditable]').innerHTML;
+    data.email = (document.querySelector('.brand-name').parentElement.querySelector('span[contenteditable]') || document.querySelector('.brand-name').parentElement.querySelector('span'))?.innerHTML || '';
+    data.invoiceNum = document.querySelector('.invoice-number span')?.innerHTML || '';
     data.from = document.querySelector('.info-grid .info-block:nth-child(1) .value').innerHTML;
     data.billTo = document.querySelector('.info-grid .info-block:nth-child(2) .value').innerHTML;
     data.issueDate = document.querySelector('.dates-row .date-field:nth-child(1) .value').innerHTML;
@@ -1800,11 +1801,12 @@
 
   function restoreInvoice(data) {
     document.querySelector('.brand-name').innerHTML = data.company || '';
-    document.querySelector('.brand-name').parentElement.querySelector('span[contenteditable]').innerHTML = data.email || '';
-    document.querySelector('.invoice-number span[contenteditable]').innerHTML = data.invoiceNum || '';
+    var emailEl = document.querySelector('.brand-name').parentElement.querySelector('span[contenteditable]') || document.querySelector('.brand-name').parentElement.querySelector('span');
+    if (emailEl) emailEl.innerHTML = data.email || '';
+    if (data.invoiceNum) { var numEl = document.querySelector('.invoice-number span'); if (numEl) numEl.innerHTML = data.invoiceNum; }
     document.querySelector('.info-grid .info-block:nth-child(1) .value').innerHTML = data.from || '';
     document.querySelector('.info-grid .info-block:nth-child(2) .value').innerHTML = data.billTo || '';
-    document.querySelector('.dates-row .date-field:nth-child(1) .value').innerHTML = data.issueDate || '';
+    if (data.issueDate) document.querySelector('.dates-row .date-field:nth-child(1) .value').innerHTML = data.issueDate;
     document.querySelector('.dates-row .date-field:nth-child(2) .value').innerHTML = data.dueDate || '';
 
     // Rebuild items
@@ -2475,7 +2477,7 @@
         if (window.innerWidth < 800) canvasOpts.windowWidth = 800;
         html2pdf().set({
           margin: [0, -5, 0, 0],
-          filename: 'invoice.pdf',
+          filename: 'invoice-' + (document.querySelector('.invoice-number span')?.textContent.trim() || 'draft') + '.pdf',
           image: { type: 'jpeg', quality: 0.85 },
           html2canvas: canvasOpts,
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -2654,6 +2656,16 @@
       const saved = JSON.parse(localStorage.getItem(AUTOSAVE_KEY));
       if (saved) restoreInvoice(saved);
     } catch(e) {}
+  }
+
+  // Auto-set invoice ID and issue date based on current date (skip shared invoices)
+  if (!isSharedReadOnly) {
+    var today = new Date().toISOString().slice(0, 10);
+    var dateId = today.replace(/-/g, '');
+    var numEl = document.querySelector('.invoice-number span[contenteditable]');
+    var dateEl = document.querySelector('.dates-row .date-field:nth-child(1) .value');
+    if (numEl) numEl.textContent = dateId;
+    if (dateEl) dateEl.textContent = today;
   }
 
   // Auto-select language from ?lang= query param
